@@ -8,3 +8,14 @@
 /projects/
 /material/
 /build/
+
+/dev/SDL-2.0.0-7295/
+
+ipch/
+
+dev/lobster/*.opensdf
+dev/lobster/*.sdf
+dev/lobster/*.suo
+lobster/*.ilk
+lobster/*.pdb
+dev/lobster/*.vcxproj.user
