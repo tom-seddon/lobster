@@ -276,6 +276,7 @@ int main(int argc, char* argv[])
         {
             switch (argv[arg][1])
             {
+                case 'u': setvbuf(stdout, NULL, _IONBF, 2); setvbuf(stderr, NULL, _IONBF, 2); break;
                 case 'w': wait = true; break;
                 case 'r': DumpRegistry(argv[arg][2]); return 0;
                 case 'b': bcf = default_bcf; break;
