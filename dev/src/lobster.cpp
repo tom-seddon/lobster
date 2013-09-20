@@ -15,6 +15,8 @@ static SlabAlloc *parserpool = NULL;    // set during the lifetime of a Parser o
 AutoRegister *autoreglist = NULL;
 NativeRegistry natreg;
 VMBase *g_vm = NULL;                    // set during the lifetime of a VM object
+bool g_fullpaths = false;               // set if full paths of files should be
+                                        // stored.
 
 #include "lex.h"
 
@@ -276,6 +278,7 @@ int main(int argc, char* argv[])
         {
             switch (argv[arg][1])
             {
+                case 'f': g_fullpaths = true; break;
                 case 'u': setvbuf(stdout, NULL, _IONBF, 2); setvbuf(stderr, NULL, _IONBF, 2); break;
                 case 'w': wait = true; break;
                 case 'r': DumpRegistry(argv[arg][2]); return 0;

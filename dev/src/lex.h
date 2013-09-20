@@ -1,3 +1,4 @@
+extern bool g_fullpaths;
 
 struct LoadedFile
 {
@@ -21,15 +22,17 @@ struct LoadedFile
     LoadedFile(const char *fn, vector<string> &fns, char *_ss) : tokenstart(NULL), stringsource(_ss), fileidx(fns.size()), token('?'), line(1), errorline(1), islf(false), cont(false), prevline(NULL), prevlinetok(NULL) /* prevlineindenttype(0) */
     {
         source = stringsource;
-        if (!source) source = (char *)LoadFile((string("include/") + fn).c_str());
-        if (!source) source = (char *)LoadFile(fn);
+
+        string usedfn;
+        if (!source) source = (char *)LoadFile((string("include/") + fn).c_str(), NULL, &usedfn);
+        if (!source) source = (char *)LoadFile(fn, NULL, &usedfn);
         if (!source) throw string("can't open file: ") + fn;
 
         linestart = p = source;
         
         indentstack.push_back(make_pair(0, false));
 
-        fns.push_back(fn);
+        fns.push_back(g_fullpaths ? usedfn : fn);
     }
 
     void Clean()

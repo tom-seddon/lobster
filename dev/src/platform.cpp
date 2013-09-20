@@ -85,14 +85,34 @@ string SanitizePath(const char *path)
     return r;
 }
 
-uchar *LoadFile(const char *relfilename, size_t *len)
+static bool tryloadfile(uchar **result, const string &fn, size_t *len, string *usedfn)
+{
+    *result = (uchar *)loadfile(fn.c_str(), len);
+    if (!*result)
+        return false;
+
+    if (usedfn)
+        *usedfn = fn;
+
+    return true;
+}
+
+uchar *LoadFile(const char *relfilename, size_t *len, string *usedfilename)
 {
     auto srfn = SanitizePath(relfilename);
-    auto f = loadfile((datadir + srfn).c_str(), len);
-    if (f) return f;
-    f = loadfile((auxdir + srfn).c_str(), len);
-    if (f) return f;
-    return loadfile((writedir + srfn).c_str(), len);
+
+    uchar *result;
+
+    if (tryloadfile(&result, datadir + srfn, len, usedfilename))
+        return result;
+
+    if (tryloadfile(&result, auxdir + srfn, len, usedfilename))
+        return result;
+
+    if (tryloadfile(&result, writedir + srfn, len, usedfilename))
+        return result;
+
+    return NULL;
 }
 
 FILE *OpenForWriting(const char *relfilename, bool binary)
