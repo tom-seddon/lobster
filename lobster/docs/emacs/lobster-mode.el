@@ -285,33 +285,18 @@ result is, like, \(STATUS . START)."
 ;; filter function just inserts the process's output using `insert'.
 ;;
 ;; see http://www.gnu.org/software/emacs/manual/html_node/elisp/Filter-Functions.html#Filter-Functions.
-;; (defun lobster-exec-filter (proc string)
-;;   (let ((buffer (process-buffer proc)))
-;;     (when (buffer-live-p buffer)
-;;       (with-current-buffer buffer
-;; 	(let* ((marker (process-mark proc))
-;; 	       (moving (= (point) marker)))
-;; 	  (save-excursion
-;; 	    (goto-char (process-mark proc))
-;; 	    (insert string)
-;; 	    (set-marker (process-mark proc) (point)))
-;; 	  (when moving
-;; 	    (goto-char marker)))))))
-
 (defun lobster-exec-filter (proc string)
-  (when (buffer-live-p (process-buffer proc))
-    (with-current-buffer (process-buffer proc)
-      (let ((moving (= (point) (process-mark proc)))
-	    (pos (copy-marker (point) t)))
-	(unwind-protect
-	    (progn
-	      ;; Insert the text, advancing the process marker.
-	      (goto-char (process-mark proc))
-	      (insert string)
-	      (set-marker (process-mark proc) (point))
-	      (if moving (goto-char (process-mark proc))))
-	  (unless moving
-	    (goto-char pos)))))))
+  (let ((buffer (process-buffer proc)))
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+	(let* ((marker (process-mark proc))
+	       (moving (= (point) marker)))
+	  (save-excursion
+	    (goto-char (process-mark proc))
+	    (insert string)
+	    (set-marker (process-mark proc) (point)))
+	  (when moving
+	    (goto-char marker)))))))
 
 (defun lobster-exec-file ()
   (interactive)
