@@ -49,7 +49,7 @@
   :group 'lobster
   :type 'string)
 
-(defcustom lobster-program-args '("-f")
+(defcustom lobster-program-args '("-f" "-u")
   "Extra args to pass in to lobster program."
   :group 'lobster)
 
