@@ -19,3 +19,8 @@ dev/lobster/*.suo
 lobster/*.ilk
 lobster/*.pdb
 dev/lobster/*.vcxproj.user
+
+.svn
+
+dev/box2d/box2d/build/vs2010/bin/
+dev/box2d/box2d/build/vs2010/obj/
