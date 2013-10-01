@@ -20,9 +20,10 @@ vector<Light> lights;
 
 float4 curcolor = float4_0;
 
+static BlendMode curblendmode = BLEND_NONE;
+
 int SetBlendMode(BlendMode mode)
 {
-    static BlendMode curblendmode = BLEND_NONE;
     if (mode == curblendmode) return curblendmode;
     switch (mode)
     {
@@ -45,13 +46,18 @@ void ClearFrameBuffer(const float3 &c)
 
 void Set2DMode(const int2 &screensize)
 {
+    Set2DMode(float2(0.f, 0.f), float2((float)screensize.x(), (float)screensize.y()));
+}
+
+void Set2DMode(const float2 &topleft, const float2 &bottomright)
+{
     glDisable(GL_CULL_FACE);  
     glDisable(GL_DEPTH_TEST);
 
     object2view = float4x4_1;
     view2object = float4x4_1;
 
-    view2clip = orthoGL(0, (float)screensize.x(), (float)screensize.y(), 0, 1, -1); // left handed coordinate system
+    view2clip = orthoGL(topleft.x(), bottomright.x(), bottomright.y(), topleft.y(), 1, -1);
 }
 
 void Set3DMode(float fovy, float ratio, float znear, float zfar)
@@ -70,6 +76,8 @@ void OpenGLFrameStart(const int2 &screensize)
 {
     glViewport(0, 0, screensize.x(), screensize.y());
 
+    // force initial set.
+    curblendmode = BLEND_NONE;
     SetBlendMode(BLEND_ALPHA);
 
     curcolor = float4(1);

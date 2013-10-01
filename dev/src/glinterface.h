@@ -84,12 +84,13 @@ struct Light
 
 
 enum BlendMode { BLEND_NONE = 0, BLEND_ALPHA, BLEND_ADD, BLEND_ADDALPHA, BLEND_MUL };
-enum Primitive { PRIM_TRIS, PRIM_FAN, PRIM_LOOP };
+enum Primitive { PRIM_TRIS, PRIM_FAN, PRIM_LOOP, PRIM_LINES };
 
 
 extern void OpenGLInit();
 extern void OpenGLFrameStart(const int2 &screensize);
 extern void Set2DMode(const int2 &screensize);
+extern void Set2DMode(const float2 &topleft, const float2 &bottomright);
 extern void Set3DMode(float fovy, float ratio, float znear, float zfar);
 extern void ClearFrameBuffer(const float3 &c);
 extern int SetBlendMode(BlendMode mode);
@@ -105,6 +106,7 @@ extern void SetTexture(uint textureunit, uint id);
 extern int MaxTextureSize();
 
 extern void RenderArray(Shader *sh, Primitive prim, int count, const char *fmt, int vertsize, void *vbuf, int *ibuf = NULL);
+
 extern void RenderLine(Shader *sh, Primitive prim, const float3 &v1, const float3 &v2, const float3 &side);
 extern void RenderLine3D(Shader *sh, const float3 &v1, const float3 &v2, const float3 &campos, float thickness);
 

@@ -469,6 +469,13 @@ void AddGraphics()
     }
     ENDDECL0(gl_ortho, "", "", "", "changes back to 2D mode rendering with a coordinate system from (0,0) top-left to the screen size in pixels bottom right. this is the default at the start of a frame, use this call to get back to that after gl_perspective.");            
 
+    STARTDECL(gl_ortho2) (Value &topleft, Value &bottomright)
+    {
+        Set2DMode(ValueDecTo<float2>(topleft), ValueDecTo<float2>(bottomright));
+        return Value();
+    }
+    ENDDECL2(gl_ortho2, "topleft,bottomright", "VV", "", "changes to 2D mode rendering with a coordinate system from topleft at the top left to bottomright at the bottom right.");
+
     STARTDECL(gl_newmesh) (Value &indices, Value &positions, Value &colors, Value &texcoords, Value &normals)
     {
         TestGL();

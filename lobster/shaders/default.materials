@@ -7,6 +7,18 @@ SHADER color
         UNIFORMS col
         gl_FragColor = col;
 
+SHADER vertexcolor
+	VERTEX
+		INPUTS apos:4 acolor:4
+		UNIFORMS mvp
+		gl_Position = mvp * apos;
+		icol = acolor;
+	PIXEL
+	INPUTS 
+		INPUTS icol:4
+		UNIFORMS col
+		gl_FragColor = col * icol;
+
 SHADER textured
     VERTEX
         INPUTS apos:4 atc:2

@@ -112,6 +112,7 @@ GLenum GetPrimitive(Primitive prim)
         case PRIM_TRIS: return GL_TRIANGLES;
         case PRIM_FAN:  return GL_TRIANGLE_FAN;
         case PRIM_LOOP: return GL_LINE_LOOP;
+        case PRIM_LINES:return GL_LINES;
     }
 }
 
