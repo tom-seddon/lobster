@@ -144,6 +144,11 @@ result is, like, \(STATUS . START)."
 	   ;; inside string - same indentation as previous
 	   (goto-char start)
 	   (current-indentation))
+
+	  ('inside-paren
+	   ;; inside nested construct - same indentation as opening.
+	   (goto-char start)
+	   (1+ (current-column)))
 	  
 	  ('after-beginning-of-block
 	   ;; bump offset by one block's-worth.
