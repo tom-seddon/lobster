@@ -275,8 +275,9 @@ result is, like, \(STATUS . START)."
   ;; compilation regexp.
   (set (make-local-variable 'compilation-error-regexp-alist)
        `((,(rx line-start (0+ space) (group (0+ not-newline)) "(" (group (1+ digit)) "): " (or "error" "VM error") ": " (0+ not-newline) line-end) 1 2)
-	 (,(rx line-start (0+ space) "in block -> " (group (0+ not-newline)) "(" (group (1+ digit)) ")" line-end) 1 2))
-       )
+	 (,(rx line-start (0+ space) "in block -> " (group (0+ not-newline)) "(" (group (1+ digit)) ")" line-end) 1 2)
+	 (,(rx line-start (0+ space) (group (0+ not-newline)) "(" (group (1+ digit)) "): " (1+ digit) "." (1+ digit) " %" line-end) 1 2)
+	 ))
   (compilation-shell-minor-mode 1)
 
   ;;
