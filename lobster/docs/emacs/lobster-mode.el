@@ -47,7 +47,8 @@
 (defcustom lobster-program "lobster"
   "Default program to use to run lobster files."
   :group 'lobster
-  :type 'string)
+  :type 'string
+  :safe 'stringp)
 
 (defcustom lobster-program-args '("-f" "-u")
   "Extra args to pass in to lobster program."
