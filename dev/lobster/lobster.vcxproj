@@ -98,7 +98,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\box2D\Box2D</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
@@ -139,7 +139,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\box2D\Box2D</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
@@ -234,6 +234,7 @@
     <ClCompile Include="..\src\lobsterreader.cpp" />
     <ClCompile Include="..\src\meshgen.cpp" />
     <ClCompile Include="..\src\glsystem.cpp" />
+    <ClCompile Include="..\src\physics.cpp" />
     <ClCompile Include="..\src\platform.cpp" />
     <ClCompile Include="..\src\sdlsystem.cpp" />
     <ClCompile Include="..\src\sdlaudiosfxr.cpp">
@@ -257,6 +258,11 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\lobster\docs\history.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\box2d\Box2D\Build\vs2010\Box2D.vcxproj">
+      <Project>{98400d17-43a5-1a40-95be-c53ac78e7694}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

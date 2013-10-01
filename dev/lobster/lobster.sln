@@ -2,6 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lobster", "lobster.vcxproj", "{EB07932C-0AC4-4962-B691-713B05E36832}"
+	ProjectSection(ProjectDependencies) = postProject
+		{98400D17-43A5-1A40-95BE-C53AC78E7694} = {98400D17-43A5-1A40-95BE-C53AC78E7694}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Box2D", "..\box2d\Box2D\Build\vs2010\Box2D.vcxproj", "{98400D17-43A5-1A40-95BE-C53AC78E7694}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +24,14 @@ Global
 		{EB07932C-0AC4-4962-B691-713B05E36832}.Release|Win32.Build.0 = Release|Win32
 		{EB07932C-0AC4-4962-B691-713B05E36832}.Release|x64.ActiveCfg = Release|x64
 		{EB07932C-0AC4-4962-B691-713B05E36832}.Release|x64.Build.0 = Release|x64
+		{98400D17-43A5-1A40-95BE-C53AC78E7694}.Debug|Win32.ActiveCfg = Debug|Win32
+		{98400D17-43A5-1A40-95BE-C53AC78E7694}.Debug|Win32.Build.0 = Debug|Win32
+		{98400D17-43A5-1A40-95BE-C53AC78E7694}.Debug|x64.ActiveCfg = Debug|x64
+		{98400D17-43A5-1A40-95BE-C53AC78E7694}.Debug|x64.Build.0 = Debug|x64
+		{98400D17-43A5-1A40-95BE-C53AC78E7694}.Release|Win32.ActiveCfg = Release|Win32
+		{98400D17-43A5-1A40-95BE-C53AC78E7694}.Release|Win32.Build.0 = Release|Win32
+		{98400D17-43A5-1A40-95BE-C53AC78E7694}.Release|x64.ActiveCfg = Release|x64
+		{98400D17-43A5-1A40-95BE-C53AC78E7694}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

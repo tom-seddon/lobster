@@ -172,6 +172,9 @@
     <ClCompile Include="..\src\simplex.cpp">
       <Filter>engine\lobster_bindings</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\physics.cpp">
+      <Filter>engine\lobster_bindings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\TODO.txt" />
