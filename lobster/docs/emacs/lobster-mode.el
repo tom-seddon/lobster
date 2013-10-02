@@ -83,6 +83,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun lobster-nav-beginning-of-statement ()
+  "Move to start of current statement."
+  (interactive "^")
+  (while (and (or (back-to-indentation) t)
+              (not (bobp))
+              (when (or
+                     (save-excursion
+                       (forward-line -1)
+                       (python-info-line-ends-backslash-p))
+                     (python-syntax-context 'string)
+                     (python-syntax-context 'paren))
+                (forward-line -1)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun lobster-indent-context ()
   "get indentation context info.
 
@@ -111,7 +127,9 @@ result is, like, \(STATUS . START)."
 
        ;; After beginning of block?
        ((setq start (save-excursion
-		      (back-to-indentation) (forward-comment -1) (skip-syntax-backward "-")
+		      (back-to-indentation)
+		      (forward-comment -1)
+		      (skip-syntax-backward "-")
 		      (when (equal (char-before) ?:)
 			(back-to-indentation)
 			(point-marker))))
@@ -119,7 +137,9 @@ result is, like, \(STATUS . START)."
 
        ;; After normal line
        ((setq start (save-excursion
-		      (back-to-indentation) (forward-comment -1) (back-to-indentation)
+		      (back-to-indentation)
+		      (forward-comment -1)
+		      (lobster-nav-beginning-of-statement)
 		      (point-marker)))
 	(cons 'after-line start))
        
@@ -370,14 +390,17 @@ result is, like, \(STATUS . START)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-derived-mode lobster-mode
-  fundamental-mode "lobster-mode"
-  "major mode for editing lobster programs."
+  prog-mode "lobster-mode"
+  "major mode for editing lobster programs.
+
+\\{lobster-mode-map}
+Entry to this mode calls the value of
+`lobster-mode-hook' if that value is non-nil."
 
   ;; add C-style comments. see \\[c-populate-syntax-table].
   (modify-syntax-entry ?/ ". 124b" lobster-mode-syntax-table)
   (modify-syntax-entry ?* " .23" lobster-mode-syntax-table)
   (modify-syntax-entry ?\n "> b" lobster-mode-syntax-table)
-  
 
   ;; font lock.
   (setq font-lock-defaults '(nil nil nil))
