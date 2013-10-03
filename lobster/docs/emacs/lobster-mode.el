@@ -13,7 +13,7 @@
 
 ;; Major mode for editing Lobster files. I quite like python.el, so I
 ;; copied bits of the indentation code (which looked like it would be
-;; impractical to reuse in situ) until I came up with this.
+;; mostly impractical to reuse in situ) until I came up with this.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -389,6 +389,26 @@ result is, like, \(STATUS . START)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar lobster-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    ;; add C-style comments. see \\[c-populate-syntax-table].
+    (modify-syntax-entry ?/ ". 124b" table)
+    (modify-syntax-entry ?* " .23" table)
+    (modify-syntax-entry ?\n "> b" table)
+
+    ;; assign punctuation syntax to symbols or non-letter word
+    ;; constituents. this is something python.el does and it's just the
+    ;; ticket for dabbrev.
+    (let ((symbol (string-to-syntax "_"))
+	  (sst (standard-syntax-table)))
+      (dotimes (i 128)
+	(unless (= i ?_)
+	  (when (equal symbol (aref sst i))
+	    (modify-syntax-entry i "." table)))))
+
+    ;; done...
+    table))
+
 (define-derived-mode lobster-mode
   prog-mode "lobster-mode"
   "major mode for editing lobster programs.
@@ -396,11 +416,6 @@ result is, like, \(STATUS . START)."
 \\{lobster-mode-map}
 Entry to this mode calls the value of
 `lobster-mode-hook' if that value is non-nil."
-
-  ;; add C-style comments. see \\[c-populate-syntax-table].
-  (modify-syntax-entry ?/ ". 124b" lobster-mode-syntax-table)
-  (modify-syntax-entry ?* " .23" lobster-mode-syntax-table)
-  (modify-syntax-entry ?\n "> b" lobster-mode-syntax-table)
 
   ;; comment
   (make-local-variable 'comment-start)
