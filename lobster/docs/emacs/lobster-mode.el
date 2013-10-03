@@ -57,19 +57,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar lobster-indent-current-level 0
-  "Index in `lobster-indent-levels' of indentation level `lobster-indent-line-function' is using.")
+(defvar lobster--indent-current-level 0
+  "Index in `lobster--indent-levels' of indentation level `lobster-indent-line-function' is using.")
 
-(defvar lobster-indent-levels '(0)
+(defvar lobster--indent-levels '(0)
   "Levels of indentation available for `lobster-indent-line-function'.")
 
-(defvar lobster-indent-dedenters-re (regexp-opt '("else:"))
+(defvar lobster--indent-dedenters-re (regexp-opt '("else:"))
   "Regexp matching words that should be dedented.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun lobster-syntax-context (type ppss)
+(defun lobster--syntax-context (type ppss)
   (case type
     (comment
      (and (nth 4 ppss) (nth 8 ppss)))
@@ -99,7 +99,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun lobster-indent-context ()
+(defun lobster--indent-context ()
   "get indentation context info.
 
 result is, like, \(STATUS . START)."
@@ -118,11 +118,11 @@ result is, like, \(STATUS . START)."
 	(cons 'other nil))
 
        ;; Inside a paren?
-       ((setq start (lobster-syntax-context 'paren ppss))
+       ((setq start (lobster--syntax-context 'paren ppss))
 	(cons 'inside-paren start))
        
        ;; Inside a string?
-       ((setq start (lobster-syntax-context 'string ppss))
+       ((setq start (lobster--syntax-context 'string ppss))
 	(cons 'inside-string start))
 
        ;; After beginning of block?
@@ -150,10 +150,10 @@ result is, like, \(STATUS . START)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun lobster-indent-calculate-indentation ()
+(defun lobster--indent-calculate-indentation ()
   "calculate appropriate indentation for current line."
   (interactive)
-  (let* ((context (lobster-indent-context))
+  (let* ((context (lobster--indent-context))
 	 (status (car context))
 	 (start (cdr context)))
     (save-restriction
@@ -184,7 +184,7 @@ result is, like, \(STATUS . START)."
 
 	     ;; if current line starts with a dedenter, dedent.
 	     (back-to-indentation)
-	     (when (looking-at lobster-indent-dedenters-re)
+	     (when (looking-at lobster--indent-dedenters-re)
 	       (setq result (max 0 (- result lobster-indent-offset))))
 
 	     result))
@@ -197,30 +197,30 @@ result is, like, \(STATUS . START)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun lobster-indent-calculate-levels ()
-  (let* ((indentation (lobster-indent-calculate-indentation))
+(defun lobster--indent-calculate-levels ()
+  (let* ((indentation (lobster--indent-calculate-indentation))
 	 (steps (/ indentation lobster-indent-offset)))
-    (setq lobster-indent-levels (list 0))
+    (setq lobster--indent-levels (list 0))
 
     ;; add tab stops
     (dotimes (step steps)
-      (push (* lobster-indent-offset (1+ step)) lobster-indent-levels))
+      (push (* lobster-indent-offset (1+ step)) lobster--indent-levels))
 
     ;; add current indent, if not aligned to indent granularity.
     (when (not (equal 0 (% indentation lobster-indent-offset)))
-      (push indentation lobster-indent-levels))
+      (push indentation lobster--indent-levels))
 
-    (setq lobster-indent-current-level (1- (length lobster-indent-levels)))
-    (setq lobster-indent-levels (nreverse lobster-indent-levels)))
+    (setq lobster--indent-current-level (1- (length lobster--indent-levels)))
+    (setq lobster--indent-levels (nreverse lobster--indent-levels)))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun lobster-indent-cycle-levels ()
-  (setq lobster-indent-current-level (1- lobster-indent-current-level))
-  (when (< lobster-indent-current-level 0)
-    (setq lobster-indent-current-level (1- (length lobster-indent-levels)))))
+(defun lobster--indent-cycle-levels ()
+  (setq lobster--indent-current-level (1- lobster--indent-current-level))
+  (when (< lobster--indent-current-level 0)
+    (setq lobster--indent-current-level (1- (length lobster--indent-levels)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -231,15 +231,15 @@ result is, like, \(STATUS . START)."
   (if (or (and (eq this-command 'indent-for-tab-command)
 	       (eq last-command this-command))
 	  force-toggle)
-      (if (not (equal lobster-indent-levels '(0)))
-	  (lobster-indent-cycle-levels)
-	(lobster-indent-calculate-levels))
-    (lobster-indent-calculate-levels))
+      (if (not (equal lobster--indent-levels '(0)))
+	  (lobster--indent-cycle-levels)
+	(lobster--indent-calculate-levels))
+    (lobster--indent-calculate-levels))
 
   ;; do it.
   (beginning-of-line)
   (delete-horizontal-space)
-  (indent-to (nth lobster-indent-current-level lobster-indent-levels)))
+  (indent-to (nth lobster--indent-current-level lobster--indent-levels)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -251,14 +251,14 @@ result is, like, \(STATUS . START)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun lobster-syntax-comment-or-string-p ()
+(defun lobster--syntax-comment-or-string-p ()
   "non-nil if point is inside comment or string."
   (nth 8 (syntax-ppss)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun lobster-indent-electric-colon (arg)
+(defun lobster--indent-electric-colon (arg)
   (interactive "*P")
   (self-insert-command (if (not (integerp arg))
 			   1
@@ -267,9 +267,9 @@ result is, like, \(STATUS . START)."
   (when (and (not arg)			
 	     (eolp)			
 	     (not (equal ?: (char-after (- (point-marker) 2))))
-	     (not (lobster-syntax-comment-or-string-p)))
+	     (not (lobster--syntax-comment-or-string-p)))
     (let ((i (current-indentation))
-	  (ci (lobster-indent-calculate-indentation)))
+	  (ci (lobster--indent-calculate-indentation)))
       (message (format "%d %d" i ci))
       (when (> i ci)
 	(save-excursion
@@ -312,7 +312,7 @@ result is, like, \(STATUS . START)."
 ;; filter function just inserts the process's output using `insert'.
 ;;
 ;; see http://www.gnu.org/software/emacs/manual/html_node/elisp/Filter-Functions.html#Filter-Functions.
-(defun lobster-exec-filter (proc string)
+(defun lobster--exec-filter (proc string)
   (let ((buffer (process-buffer proc)))
     (when (buffer-live-p buffer)
       (with-current-buffer buffer
@@ -378,7 +378,7 @@ result is, like, \(STATUS . START)."
 			       lobster-program
 			       program-args)))
 	  (set-process-query-on-exit-flag process nil)
-	  (set-process-filter process 'lobster-exec-filter)
+	  (set-process-filter process 'lobster--exec-filter)
 
 	  (pop-to-buffer buffer)
 	  
@@ -402,6 +402,10 @@ Entry to this mode calls the value of
   (modify-syntax-entry ?* " .23" lobster-mode-syntax-table)
   (modify-syntax-entry ?\n "> b" lobster-mode-syntax-table)
 
+  ;; comment
+  (make-local-variable 'comment-start)
+  (setq comment-start "//")
+
   ;; font lock.
   (setq font-lock-defaults '(nil nil nil))
 
@@ -421,7 +425,7 @@ Entry to this mode calls the value of
 	    ("value" ,(rx line-start (0+ space) (eval private) "value" (1+ space) (group (eval symbol)) (0+ space) (any ":[")) 1))))
   )
 
-(define-key lobster-mode-map (kbd ":") 'lobster-indent-electric-colon)
+(define-key lobster-mode-map (kbd ":") 'lobster--indent-electric-colon)
 (define-key lobster-mode-map (kbd "C-c C-c") 'lobster-exec-file)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
