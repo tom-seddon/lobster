@@ -391,11 +391,6 @@ result is, like, \(STATUS . START)."
 
 (defvar lobster-mode-syntax-table
   (let ((table (make-syntax-table)))
-    ;; add C-style comments. see \\[c-populate-syntax-table].
-    (modify-syntax-entry ?/ ". 124b" table)
-    (modify-syntax-entry ?* " .23" table)
-    (modify-syntax-entry ?\n "> b" table)
-
     ;; assign punctuation syntax to symbols or non-letter word
     ;; constituents. this is something python.el does and it's just the
     ;; ticket for dabbrev.
@@ -405,6 +400,11 @@ result is, like, \(STATUS . START)."
 	(unless (= i ?_)
 	  (when (equal symbol (aref sst i))
 	    (modify-syntax-entry i "." table)))))
+
+    ;; add C-style comments. see \\[c-populate-syntax-table].
+    (modify-syntax-entry ?/ ". 124b" table)
+    (modify-syntax-entry ?* " .23" table)
+    (modify-syntax-entry ?\n "> b" table)
 
     ;; done...
     table))
