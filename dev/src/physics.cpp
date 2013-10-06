@@ -11,6 +11,83 @@
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
+template <typename T> class IntResourceManager2
+{
+    struct Elem
+    {
+        T *t;
+        size_t nextfree;
+
+        Elem() : t(NULL), nextfree(size_t(-1)) {}
+    };
+
+    vector<Elem> elems;
+    size_t firstfree;
+    size_t numitems;
+
+public:
+
+    // there isn't actually any particularly nice way of doing this.
+    void (*deleter)(T *p, void *context);
+    void *deleter_context;
+
+    IntResourceManager2(void (*deleter_)(T *, void *), void *deleter_context_) : firstfree(size_t(-1)), numitems(0), deleter(deleter_), deleter_context(deleter_context_)
+    {
+        elems.push_back(Elem());    // a NULL item at index 0 that can never be allocated/deleted
+    }
+
+    ~IntResourceManager2()
+    {
+        for (auto &e : elems)
+            if (e.t)
+                (*this->deleter)(e.t, this->deleter_context);
+    }
+
+    size_t Add(T *t)
+    {
+        assert(t);  // we can't store NULL pointers as elements, because we wouldn't be able to distinguish them from unallocated slots
+        size_t i = elems.size();
+        if (firstfree < i)
+        {
+            i = firstfree;
+            firstfree = elems[i].nextfree;
+        }
+        else
+        {
+            elems.push_back(Elem());
+        }
+        ++numitems;
+        elems[i].t = t;
+        return i;
+    }
+
+    T *Get(size_t i)
+    {
+        return i < elems.size() ? elems[i].t : NULL;
+    }
+
+    void Delete(size_t i)
+    {
+        T *e = Get(i);
+
+        if (e)
+        {
+            (*this->deleter)(elems[i].t, this->deleter_context);
+            elems[i].t = NULL;
+            elems[i].nextfree = firstfree;
+            firstfree = i;
+            --numitems;
+        }
+    }
+
+    size_t Range() { return elems.size(); }     // if you wanted to iterate over all elements
+
+    size_t NumItems() { return numitems; }
+};
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
 static uint8_t GetByteColour(float f)
 {
     if(f<0.f)
@@ -32,7 +109,7 @@ static byte4 GetByte4Colour(const b2Color &c,uint8_t a)
 #define GL(X) (X)
 
 class DebugDraw:
-	public b2Draw
+    public b2Draw
 {
     struct Vertex
     {
@@ -40,14 +117,14 @@ class DebugDraw:
         byte4 c;
 
         Vertex(float x,float y,float z,byte4 c_):
-        p(x,y,z),
-        c(c_)
+            p(x,y,z),
+            c(c_)
         {
         }
 
         Vertex(const b2Vec2 &p_,float z,byte4 c_):
-        p(p_.x,p_.y,z),
-        c(c_)
+            p(p_.x,p_.y,z),
+            c(c_)
         {
         }
     };
@@ -262,77 +339,49 @@ static b2Vec2 Getb2Vec2DEC(Value &v)
     return vec;
 }
 
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-
-template <typename T> class IntResourceManager2
+static Value GetValue(const b2Vec2 &v)
 {
-    struct Elem
+    LVector *lv=g_vm->NewVector(2,V_VECTOR);
+
+    lv->push(Value(v.x));
+    lv->push(Value(v.y));
+
+    return Value(lv);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+static void Getb2AABB(b2AABB *aabb,const Value &v)
+{
+    if(v.type!=V_VECTOR||
+        v.vval->len!=2)
     {
-        T *t;
-        size_t nextfree;
-
-        Elem() : t(NULL), nextfree(size_t(-1)) {}
-    };
-
-    vector<Elem> elems;
-    size_t firstfree;
-
-    public:
-
-    // there isn't actually any particularly nice way of doing this.
-    void (*deleter)(T *p, void *context);
-    void *deleter_context;
-
-    IntResourceManager2(void (*deleter_)(T *, void *), void *deleter_context_) : firstfree(size_t(-1)), deleter(deleter_), deleter_context(deleter_context_)
-    {
-        elems.push_back(Elem());    // a NULL item at index 0 that can never be allocated/deleted
+        g_vm->BuiltinError("can't convert object of type "+std::string(g_vm->ProperTypeName(v))+" to b2AABB");
     }
 
-    ~IntResourceManager2()
-    {
-        for (auto &e : elems)
-            if (e.t)
-                (*this->deleter)(e.t, this->deleter_context);
-    }
+    const b2Vec2 &a=Getb2Vec2(v.vval->at(0));
+    const b2Vec2 &b=Getb2Vec2(v.vval->at(1));
 
-    size_t Add(T *t)
-    {
-        assert(t);  // we can't store NULL pointers as elements, because we wouldn't be able to distinguish them from unallocated slots
-        size_t i = elems.size();
-        if (firstfree < i)
-        {
-            i = firstfree;
-            firstfree = elems[i].nextfree;
-        }
-        else
-        {
-            elems.push_back(Elem());
-        }
-        elems[i].t = t;
-        return i;
-    }
+    aabb->lowerBound.Set(std::min(a.x,b.x),std::min(a.y,b.y));
+    aabb->upperBound.Set(std::max(a.x,b.x),std::max(a.y,b.y));
+}
 
-    T *Get(size_t i)
-    {
-        return i < elems.size() ? elems[i].t : NULL;
-    }
+static void Getb2AABBDEC(b2AABB *aabb,Value &v)
+{
+    Getb2AABB(aabb,v);
+    v.DEC();
+}
 
-    void Delete(size_t i)
-    {
-        T *e = Get(i);
+static Value GetValue(const b2AABB &aabb)
+{
+    LVector *lv=g_vm->NewVector(2,V_VECTOR);
 
-        if (e)
-        {
-            (*this->deleter)(elems[i].t, this->deleter_context);
-            elems[i].t = NULL;
-            elems[i].nextfree = firstfree;
-            firstfree = i;
-        }
-    }
+    lv->push(GetValue(aabb.lowerBound));
+    lv->push(GetValue(aabb.upperBound));
 
-    size_t Range() { return elems.size(); }     // if you wanted to iterate over all elements
-};
+    return Value(lv);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -390,6 +439,47 @@ static Value AllocateID(std::vector<ContType> *cont,ObjType *obj)
     int id=(int)(cont->size()-1);
     return Value(id);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+// body->vector
+static Value DoB_V(Value &body_,const b2Vec2 &(b2Body::*get_mfn)() const)
+{
+    b2Body *body=g_bodies->Get(body_.ival);
+
+    const b2Vec2 &v=(body->*get_mfn)();
+    return GetValue(v);
+}
+
+// body->float
+static Value DoB_F(Value &body_,float (b2Body::*get_mfn)() const)
+{
+    b2Body *body=g_bodies->Get(body_.ival);
+
+    float f=(body->*get_mfn)();
+    return Value(f);
+}
+
+// body,vector->void
+static Value DoBV_(Value &body_,Value &v0_,void (b2Body::*mfn)(const b2Vec2 &))
+{
+    b2Body *body=g_bodies->Get(body_.ival);
+    const b2Vec2 &v0=Getb2Vec2DEC(v0_);
+
+    (body->*mfn)(v0);
+}
+
+// body,float->void
+static Value DoBV_(Value &body_,Value &f0_,void (b2Body::*mfn)(float))
+{
+    b2Body *body=g_bodies->Get(body_.ival);
+
+    (body->*mfn)(f0_.fval);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 static const int NUM_VELOCITY_ITERATIONS=8;
 static const int NUM_POSITION_ITERATIONS=8;
@@ -492,11 +582,47 @@ void AddPhysics()
     }
     ENDDECL1(b2_createcircleshape,"r","A","I","create circle shape with given radius. returns integer id.");
 
+    STARTDECL(b2_createpolygonshape)(Value &pts_)
+    {
+        b2Vec2 vertices[b2_maxPolygonVertices];
+        int numvertices=0;
+
+        if(pts_.vval->len>b2_maxPolygonVertices)
+            g_vm->BuiltinError("too many vertices supplied to b2_createpolygonshape");
+
+        for(int i=0;i<pts_.vval->len;++i)
+            vertices[numvertices++]=Getb2Vec2(pts_.vval->at(i));
+
+        b2PolygonShape *shape=new b2PolygonShape;
+
+        shape->Set(vertices,numvertices);
+
+        pts_.DEC();
+
+        int id=(int)g_shapes->Add(shape);
+        return Value(id);
+    }
+    ENDDECL1(b2_createpolygonshape,"pts","V","I","create polygon shape with given points. returns integer id.");
+
+    STARTDECL(b2_createboxshape)(Value &size_)
+    {
+        const b2Vec2 &size=Getb2Vec2DEC(size_);
+
+        b2PolygonShape *shape=new b2PolygonShape;
+        shape->SetAsBox(size.x*.5f,size.y*.5f);
+
+        int id=(int)g_shapes->Add(shape);
+        return Value(id);
+    }
+    ENDDECL1(b2_createboxshape,"size","V","I","create axis-aligned box shape with given size. returns integer id.");
+
     STARTDECL(b2_createbody)(Value &pos_,Value &angle_,Value &shape_,Value &mass_)
     {
         b2BodyDef body_def;
 
-        float mass=GetFloatDEC(mass_);
+        const float angle=angle_.fval;
+        const float mass=mass_.fval;
+
         if(mass==0.f)
             body_def.type=b2_staticBody;
         else
@@ -525,7 +651,7 @@ void AddPhysics()
         return Value(id);
 
     }
-    ENDDECL4(b2_createbody,"initial_pos,initial_angle,shape_id,mass_kg","VAIA","I","create body with given properties. Center of mass is at (0,0) and shape is assumed to be of uniform density. Returns integer id.");
+    ENDDECL4(b2_createbody,"initial_pos,initial_angle,shape_id,mass_kg","VFIF","I","create body with given properties. Center of mass is at (0,0), and it is assigned a single fixture holding the shape (assumed to be of uniform density). Returns integer id.");
 
     STARTDECL(b2_destroybody)(Value &body_)
     {
@@ -543,6 +669,233 @@ void AddPhysics()
         return Value(I);
     }
     ENDDECL1(b2_getIfor1kgshape,"shape","I","F","return moment of inertia for 1kg shape.");
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    STARTDECL(b2_getposition)(Value &body_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        b2Vec2 result=body->GetPosition();
+        return GetValue(result);
+    }
+    ENDDECL1(b2_getposition,"body","I","V","get body position.");
+
+    STARTDECL(b2_getworldcenter)(Value &body_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        b2Vec2 result=body->GetWorldCenter();
+        return GetValue(result);
+    }
+    ENDDECL1(b2_getworldcenter,"body","I","V","get body world center.");
+
+    STARTDECL(b2_getlocalcenter)(Value &body_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        b2Vec2 result=body->GetLocalCenter();
+        return GetValue(result);
+    }
+    ENDDECL1(b2_getlocalcenter,"body","I","V","get body local center.");
+
+    STARTDECL(b2_getangle)(Value &body_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        
+        float angle=body->GetAngle();
+
+        return Value(angle);
+    }
+    ENDDECL1(b2_getangle,"body","I","F","get body angle, in radians.");
+
+    STARTDECL(b2_settransform)(Value &body_,Value &pos_,Value &angle_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        const b2Vec2 &pos=Getb2Vec2DEC(pos_);
+        float angle=angle_.fval;
+
+        body->SetTransform(pos,angle);
+
+        return Value();
+    }
+    ENDDECL3(b2_settransform,"body,worldpos,angle","IVF","","set body transform. Angle is in radians.");
+
+//     STARTDECL(b2_setangle)(Value &body_,Value &angle_)
+//     {
+//         b2Body *body=g_bodies->Get(body_.ival);
+//         body->SetAngle(angle_.fval);
+//     }
+//     ENDDECL1(b2_setangle,"body","I","F","set body angle.");
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    STARTDECL(b2_getangularvelocity)(Value &body_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+
+        float result=body->GetAngularVelocity();
+
+        return Value(result);
+    }
+    ENDDECL1(b2_getangularvelocity,"body","I","F","get body angular velocity.");
+
+    STARTDECL(b2_setangularvelocity)(Value &body_,Value &angularvelocity_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        body->SetAngularVelocity(angularvelocity_.fval);
+        return Value();
+    }
+    ENDDECL2(b2_setangularvelocity,"body,angularvelocity","IF","F","set body angular velocity.");
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+       STARTDECL(b2_getlinearvelocity)(Value &body_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        b2Vec2 result=body->GetLinearVelocity();
+        return GetValue(result);
+    }
+    ENDDECL1(b2_getlinearvelocity,"body","I","V","get body linear velocity.");
+
+    STARTDECL(b2_setlinearvelocity)(Value &body_,Value &linearvelocity_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        const b2Vec2 &linearvelocity=Getb2Vec2DEC(linearvelocity_);
+        body->SetLinearVelocity(linearvelocity);
+        return Value();
+    }
+    ENDDECL2(b2_setlinearvelocity,"body,linearvelocity","IV","","set body linear velocity.");
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    STARTDECL(b2_wake)(Value &body_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        body->SetAwake(true);
+        return Value();
+    }
+    ENDDECL1(b2_wake,"body","I","","wake body up, if it's sleeping.");
+
+    STARTDECL(b2_applyforce)(Value &body_,Value &worldforce_,Value &worldpt_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        const b2Vec2 &worldforce=Getb2Vec2DEC(worldforce_);
+        const b2Vec2 &worldpt=Getb2Vec2DEC(worldpt_);
+        body->ApplyForce(worldforce,worldpt,false);
+        return Value();
+    }
+    ENDDECL3(b2_applyforce,"body,worldforce,worldpt","IVV","","apply force to body.");
+
+    STARTDECL(b2_applyforcetocenter)(Value &body_,Value &worldforce_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        const b2Vec2 &worldforce=Getb2Vec2DEC(worldforce_);
+        body->ApplyForceToCenter(worldforce,false);
+        return Value();
+    }
+    ENDDECL2(b2_applyforcetocenter,"body,worldforce","IV","","apply force to body's center of mass.");
+
+    STARTDECL(b2_applytorque)(Value &body_,Value &torque_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        body->ApplyTorque(torque_.fval,false);
+        return Value();
+    }
+    ENDDECL2(b2_applytorque,"body,torque","IF","","apply torque to body.");
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    STARTDECL(b2_getlinearvelocityfromworldpoint)(Value &body_,Value &worldpt_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        const b2Vec2 &worldpt=Getb2Vec2DEC(worldpt_);
+        const b2Vec2 &linearvelocity=body->GetLinearVelocityFromWorldPoint(worldpt);
+        return GetValue(linearvelocity);
+    }
+    ENDDECL2(b2_getlinearvelocityfromworldpoint,"body,worldpt","IV","V","get world space linear velocity from world space position.");
+
+    STARTDECL(b2_getlinearvelocityfromlocalpoint)(Value &body_,Value &localpt_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+        const b2Vec2 &localpt=Getb2Vec2DEC(localpt_);
+        const b2Vec2 &linearvelocity=body->GetLinearVelocityFromLocalPoint(localpt);
+        return GetValue(linearvelocity);
+    }
+    ENDDECL2(b2_getlinearvelocityfromlocalpoint,"body,localpt","IV","V","get world space linear velocity from local space position.");
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    STARTDECL(b2_getaabb)(Value &body_)
+    {
+        b2Body *body=g_bodies->Get(body_.ival);
+
+        b2AABB total_aabb;
+        total_aabb.lowerBound.Set(FLT_MAX,FLT_MAX);
+        total_aabb.upperBound.Set(-FLT_MAX,-FLT_MAX);
+
+        const b2Transform *t=&body->GetTransform();
+
+        for(b2Fixture *fixture=body->GetFixtureList();fixture;fixture=fixture->GetNext())
+        {
+            b2Shape *shape=fixture->GetShape();
+
+            for(int32 i=0;i<shape->GetChildCount();++i)
+            {
+                b2AABB aabb;
+                shape->ComputeAABB(&aabb,*t,i);
+
+                total_aabb.Combine(aabb);
+            }
+        }
+
+        if(!total_aabb.IsValid())
+        {
+            total_aabb.lowerBound=t->p;
+            total_aabb.upperBound=t->p;
+        }
+
+        return GetValue(total_aabb);
+    }
+    ENDDECL1(b2_getaabb,"body","I","V","get world space AABB of body.");
+
+    STARTDECL(b2_aabbsintersect)(Value &a_,Value &b_)
+    {
+        b2AABB a,b;
+        Getb2AABBDEC(&a,a_);
+        Getb2AABBDEC(&b,b_);
+
+        bool intersect=true;
+
+        if(a.upperBound.x<b.lowerBound.x||b.upperBound.x<a.lowerBound.x)
+            intersect=false;//X disjoint
+        else if(a.upperBound.y<b.lowerBound.y||b.upperBound.y<a.lowerBound.y)
+            intersect=false;//Y disjoint
+
+        return Value(intersect);
+    }
+    ENDDECL2(b2_aabbsintersect,"a,b","VV","I","returns true if AABBs intersect.");
+
+    STARTDECL(b2_aabbcontainsaabb)(Value &outer_,Value &inner_)
+    {
+        b2AABB outer,inner;
+        Getb2AABBDEC(&outer,outer_);
+        Getb2AABBDEC(&inner,inner_);
+
+        bool contains=outer.Contains(inner);
+        return Value(contains);
+    }
+    ENDDECL2(b2_aabbcontainsaabb, "outer,inner", "VV", "I", "returns true if inner AABB is wholly inside outer AABB.");
+
+    STARTDECL(b2_debugprint)()
+    {
+        printf("Box2D: %u bodies; %u shapes.\n", g_bodies->NumItems(), g_shapes->NumItems());
+        return Value();
+    }
+    ENDDECL0(b2_debugprint, "", "" ,"", "print some Box2D debug stuff.");
 }
 
 AutoRegister __ap("physics",AddPhysics);
