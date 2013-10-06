@@ -484,6 +484,34 @@ void AddBuiltins()
     STARTDECL(rndseed) (Value &seed) { rnd.ReSeed(seed.ival); return Value(); } ENDDECL1(rndseed, "seed", "I", "", "explicitly set a random seed for reproducable randomness");
     STARTDECL(rndfloat)()            { return Value((float)rnd.rnddouble());  } ENDDECL0(rndfloat, "", "", "F", "a random float [0..1)");
 
+    STARTDECL(rnditem)(Value &xs)
+    {
+        Value item;
+
+        if(xs.vval->len>0)
+        {
+            int index=rnd(xs.vval->len);
+            item=xs.vval->at(index);
+            item.INC();
+        }
+
+        xs.DEC();
+        return item;
+    }
+    ENDDECL1(rnditem, "xs", "V", "A", "returns a random item from the supplied vector, or nil if the vector is empty.");
+
+    STARTDECL(radians)(Value &degrees)
+    {
+        return Value(degrees.fval/180.f*PI);
+    }
+    ENDDECL1(radians, "degrees", "F", "F", "converts degrees to radians.");
+
+    STARTDECL(degrees)(Value &radians)
+    {
+        return Value(radians.fval/PI*180.f);
+    }
+    ENDDECL1(degrees, "radians", "F", "F", "convert radians to degrees.");
+
     STARTDECL(div) (Value &a, Value &b) { return Value(float(a.ival) / float(b.ival)); } ENDDECL2(div, "a,b",   "II", "F", "forces two ints to be divided as floats");
 
     STARTDECL(clamp) (Value &a, Value &b, Value &c)
