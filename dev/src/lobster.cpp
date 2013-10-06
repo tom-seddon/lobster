@@ -31,6 +31,8 @@ struct Node;
 
 #include "vm.h"
 
+#include <windows.h>
+
 const char *fileheader = "\xA5\x74\xEF\x19";
 
 
@@ -111,7 +113,31 @@ struct CompiledProgram
     void Run(string &evalret, const char *programname)
     {
         VM vm(st, &code[0], code.size(), linenumbers, programname);
-        vm.EvalProgram(evalret);
+
+        int exc = Run2(evalret, vm);
+
+        if (exc != 0)
+        {
+            char tmp[100];
+            snprintf(tmp, sizeof tmp, "%08X", exc);
+
+            vm.BuiltinError(string("Win32 exception: ") + tmp);
+        }
+    }
+
+    int Run2(string &evalret, VM &vm)
+    {
+        int exc = 0;
+
+        __try
+        {
+            vm.EvalProgram(evalret);
+        }
+        __except((exc = (GetExceptionInformation())->ExceptionRecord->ExceptionCode), EXCEPTION_EXECUTE_HANDLER)
+        {
+        }
+
+        return exc;
     }
 };
 

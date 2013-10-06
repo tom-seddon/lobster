@@ -63,7 +63,7 @@ void updatemousebutton(int button, int finger, bool on)
     updatebutton(name, on);
 }
 
-
+    
 struct Finger
 {
     SDL_FingerID id;
@@ -185,7 +185,7 @@ int SDLHandleAppEvents(void *userdata, SDL_Event *event)
 
 string SDLInit(const char *title, int2 &screensize)
 {
-    if (SDL_Init(SDL_INIT_VIDEO/* | SDL_INIT_AUDIO*/) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO/* | SDL_INIT_AUDIO*/ | SDL_INIT_NOPARACHUTE) < 0)
     {
         return SDLError("Unable to initialize SDL");
     }
