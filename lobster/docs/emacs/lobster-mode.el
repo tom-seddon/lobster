@@ -294,9 +294,30 @@ result is, like, \(STATUS . START)."
 
   ;; compilation regexp.
   (set (make-local-variable 'compilation-error-regexp-alist)
-       `((,(rx line-start (0+ space) (group (0+ not-newline)) "(" (group (1+ digit)) "): " (or "error" "VM error") ": " (0+ not-newline) line-end) 1 2)
-	 (,(rx line-start (0+ space) "in block -> " (group (0+ not-newline)) "(" (group (1+ digit)) ")" line-end) 1 2)
-	 (,(rx line-start (0+ space) (group (0+ not-newline)) "(" (group (1+ digit)) "): " (1+ digit) "." (1+ digit) " %" line-end) 1 2)
+       `(
+	 ;; runtime error
+	 (,(rx line-start (0+ space) (group (0+ not-newline)) "(" (group (1+ digit)) "): " (or "error" "VM error") ": " (0+ not-newline) line-end)
+	  1				;file regexp group
+	  2				;line regexp group
+	  nil				;column regexp group
+	  2 				;type (2=error)
+	  )
+
+	 ;; stack trace entry
+	 (,(rx line-start (0+ space) "in block -> " (group (0+ not-newline)) "(" (group (1+ digit)) ")" line-end)
+	  1				;file regexp group
+	  2				;line regexp group
+	  nil				;column regexp group
+	  2				;type (2=error)
+	  )
+
+	 ;; post-run timing info
+	 (,(rx line-start (0+ space) (group (0+ not-newline)) "(" (group (1+ digit)) "): " (1+ digit) "." (1+ digit) " %" line-end)
+	  1				;file regexp group
+	  2				;line regexp group
+	  nil				;column regexp group
+	  0				;type (0=info)
+	  )
 	 ))
   (compilation-shell-minor-mode 1)
 
