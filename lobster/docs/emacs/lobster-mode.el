@@ -388,6 +388,7 @@ result is, like, \(STATUS . START)."
 		(combine-and-quote-strings program-args)
 		" ---8<---")
 	(newline)
+	(compilation-forget-errors)
 	(goto-char (point-max)))
 
       ;; start process
