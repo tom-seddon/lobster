@@ -6,8 +6,8 @@
 include "vec.lobster"
 
 camera_position := vec_0
-camera_yaw := 0
-camera_pitch := 0
+camera_yaw := 0.0
+camera_pitch := 0.0
 
 function camera_FPS_update(upkey, leftkey, downkey, rightkey, movementspeed:float, mousesens:float, dopitch):
     camera_yaw  += gl_mousedelta(0).x / mousesens
