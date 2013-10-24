@@ -3,11 +3,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-v ..\projects\totslike\totslike.lobster</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-f -u -u -v "c:\\tom\\tests\\lobster\\3dtest.lobster"</LocalDebuggerCommandArguments>
     <LocalDebuggerMergeEnvironment>false</LocalDebuggerMergeEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommandArguments>-v ..\projects\totslike\totslike.lobster</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-f -u -u -v "c:\\tom\\tests\\lobster\\zoocrossing\\zoocrossing.lobster"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
