@@ -417,6 +417,49 @@ void AddGraphics()
     }
     ENDDECL2(gl_hit, "vec,i", "VI", "I", "wether the mouse/finger is inside of the rectangle specified in terms of the current transform (for fingers only if the corresponding gl_isdown is true). Only true if the last rectangle for which gl_hit was true last frame is of the same size as this one (allows you to safely test in most cases of overlapping rendering)");
 
+    STARTDECL(gl_hitpos) (Value &vec, Value &i)
+    {
+        auto size = ValueDecTo<float3>(vec);
+
+        float sx = size.x();
+        float sy = size.y();
+
+        if (sx == 0.f && sy == 0.f)
+            return Value();
+
+        auto localmousepos = localfingerpos(i.ival);
+        float x = localmousepos.x();
+        float y = localmousepos.y();
+
+        float tx = 0.f;
+        if (sx > 0.f)
+            tx = x / sx;
+
+        float ty = 0.f;
+        if (sy > 0.f)
+            ty = y / sy;
+
+        bool hit = false;
+        if (tx >= 0.f && tx <= 1.f && ty >= 0.f && ty <= 1.f)
+            hit = true;
+
+        if (hit)
+            lasthitsize = size;
+
+        if (hit && size == lastframehitsize)
+        {
+            LVector *v = g_vm->NewVector(2, V_VECTOR);
+
+            v->push(Value(tx));
+            v->push(Value(ty));
+
+            return Value(v);
+        }
+        else
+            return Value();
+    }
+    ENDDECL2(gl_hitpos, "vec,i", "VI", "A", "check if the mouse/finger is inside of the rectangle specified in terms of the current transform (for fingers only if the corresponding gl_isdown is true). If so, returns normalised coordinates of intersection; otherwise, nil. Only ever non-nil if the last rectangle for which gl_hit was true last frame is of the same size as this one (allows you to safely test in most cases of overlapping rendering)");
+
     STARTDECL(gl_rect) (Value &vec)
     {
         TestGL();

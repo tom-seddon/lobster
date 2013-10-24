@@ -212,6 +212,29 @@ private function button(id, f, do):
 function gui_button(f, do):         button(caller_id(), f, do)
 function gui_button_text(text, do): button(caller_id(), function(): gui_text(text), do)
 
+function gui_slider(val,mini,maxi,f):
+    gui_hblock(1,0):
+        if(render_pass):
+            if(maxi>mini):
+                gl_blend(1):
+                    gl_color([1,0,0,0.5]):
+                        t:=(val-mini)/(maxi-mini)
+                        t=max(t,0)
+                        t=min(t,1)
+                        print(parent_size)
+                        gl_rect([t*parent_size[0],parent_size[1]])
+
+                hitpos:=gl_hitpos(parent_size,0)
+                print("hit, "+hitpos)
+                if(hitpos&interactive):
+                    if(gl_isdown("mouse1")):
+                        val=mini+hitpos[0]*(maxi-mini)
+        f()
+        gui_text(" ("+val+")")
+
+    val
+    
+
 function gui_custombackground(f): if(render_pass): f(overalsize)
               
 function gui_setclickcolors(hover, sel):
