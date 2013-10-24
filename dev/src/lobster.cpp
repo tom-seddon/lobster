@@ -129,11 +129,12 @@ struct CompiledProgram
     {
         int exc = 0;
 
+        // if C++ exceptions are caught, pass them through.
         __try
         {
             vm.EvalProgram(evalret);
         }
-        __except((exc = (GetExceptionInformation())->ExceptionRecord->ExceptionCode), EXCEPTION_EXECUTE_HANDLER)
+        __except((exc = (GetExceptionInformation())->ExceptionRecord->ExceptionCode), (exc == 0xE06D7363 ? EXCEPTION_CONTINUE_SEARCH : EXCEPTION_EXECUTE_HANDLER))
         {
         }
 
