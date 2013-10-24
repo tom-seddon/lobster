@@ -890,12 +890,16 @@ void AddPhysics()
     }
     ENDDECL2(b2_aabbcontainsaabb, "outer,inner", "VV", "I", "returns true if inner AABB is wholly inside outer AABB.");
 
-    STARTDECL(b2_debugprint)()
+    STARTDECL(b2_debuginfo)()
     {
-        printf("Box2D: %u bodies; %u shapes.\n", g_bodies->NumItems(), g_shapes->NumItems());
-        return Value();
+        LVector *lv=g_vm->NewVector(2,V_VECTOR);
+
+        lv->push(Value((int)g_bodies->NumItems()));
+        lv->push(Value((int)g_shapes->NumItems()));
+
+        return Value(lv);
     }
-    ENDDECL0(b2_debugprint, "", "" ,"", "print some Box2D debug stuff.");
+    ENDDECL0(b2_debuginfo, "", "" ,"S", "return some box2D debug info.");
 }
 
 AutoRegister __ap("physics",AddPhysics);
