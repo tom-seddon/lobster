@@ -512,6 +512,80 @@ void AddBuiltins()
     }
     ENDDECL1(degrees, "radians", "F", "F", "convert radians to degrees.");
 
+    STARTDECL(rgbafromhsv)(Value &hsv_, Value &alpha_)
+    {
+        const float3 &hsv = ValueDecTo<float3>(hsv_);
+        float alpha = alpha_.fval;
+
+        float h=fmodf(hsv.x(), 360.f);
+        if (h < 0.f)
+            h += 360.f;
+
+        const float h60 = h / 60.f;
+        const int hi = (int)floorf(h60) % 6;
+        const float f = h60 - floorf(h60);
+
+        const float s = hsv.y();
+        const float v = hsv.z();
+
+        const float p = v * (1.f - s);
+        const float q = v * (1.f - f * s);
+        const float t = v * (1.f - (1.f - f) * s);
+
+        float r, g, b;
+        switch (hi)
+        {
+        default:
+            assert(0);
+            // fall through
+        case 0:
+            r = v;
+            g = t;
+            b = p;
+            break;
+
+        case 1:
+            r = q;
+            g = v;
+            b = p;
+            break;
+
+        case 2:
+            r = p;
+            g = v;
+            b = t;
+            break;
+
+        case 3:
+            r = p;
+            g = q;
+            b = v;
+            break;
+
+        case 4:
+            r = t;
+            g = p;
+            b = v;
+            break;
+
+        case 5:
+            r = v;
+            g = p;
+            b = q;
+            break;
+        }
+
+        auto rgba = g_vm->NewVector(4, V_FLOAT);
+
+        rgba->push(Value(r));
+        rgba->push(Value(g));
+        rgba->push(Value(b));
+        rgba->push(Value(alpha));
+
+        return Value(rgba);
+    }
+    ENDDECL2(rgbafromhsv, "rgb,alpha", "VF", "V", "convert hsv and alpha to RGBA");
+
     STARTDECL(div) (Value &a, Value &b) { return Value(float(a.ival) / float(b.ival)); } ENDDECL2(div, "a,b",   "II", "F", "forces two ints to be divided as floats");
 
     STARTDECL(clamp) (Value &a, Value &b, Value &c)
