@@ -172,7 +172,7 @@
     <ClCompile Include="..\src\simplex.cpp">
       <Filter>engine\lobster_bindings</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\physics.cpp">
+    <ClCompile Include="..\src\box2d_physics.cpp">
       <Filter>engine\lobster_bindings</Filter>
     </ClCompile>
   </ItemGroup>

@@ -98,7 +98,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\include;..\box2D\Box2D</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\box2D\Box2D;..\bullet-2.82-r2704\src</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
@@ -234,7 +234,7 @@
     <ClCompile Include="..\src\lobsterreader.cpp" />
     <ClCompile Include="..\src\meshgen.cpp" />
     <ClCompile Include="..\src\glsystem.cpp" />
-    <ClCompile Include="..\src\physics.cpp" />
+    <ClCompile Include="..\src\box2d_physics.cpp" />
     <ClCompile Include="..\src\platform.cpp" />
     <ClCompile Include="..\src\sdlsystem.cpp" />
     <ClCompile Include="..\src\sdlaudiosfxr.cpp">
@@ -262,6 +262,33 @@
   <ItemGroup>
     <ProjectReference Include="..\box2d\Box2D\Build\vs2010\Box2D.vcxproj">
       <Project>{98400d17-43a5-1a40-95be-c53ac78e7694}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\bullet-2.82-r2704\build\vs2012\BulletCollision.vcxproj">
+      <Project>{1532557e-0164-9548-bc62-e9afbe49ebfb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\bullet-2.82-r2704\build\vs2012\BulletDynamics.vcxproj">
+      <Project>{b1645498-0e49-124e-9f9c-e9ff99679039}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\bullet-2.82-r2704\build\vs2012\BulletFileLoader.vcxproj">
+      <Project>{f98509fd-f7d0-3944-9bbd-be8a28bf7aa3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\bullet-2.82-r2704\build\vs2012\BulletSoftBody.vcxproj">
+      <Project>{957bdd0c-ac59-6149-94f0-5040f6a87cda}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\bullet-2.82-r2704\build\vs2012\BulletWorldImporter.vcxproj">
+      <Project>{7d631792-51ad-fc4a-988f-adc17c1ced3c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\bullet-2.82-r2704\build\vs2012\BulletXmlWorldImporter.vcxproj">
+      <Project>{0043029a-28d9-9c49-823e-4f3ad92232c4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\bullet-2.82-r2704\build\vs2012\ConvexDecomposition.vcxproj">
+      <Project>{3dae74ee-313f-3049-9a21-dedf9ee3c414}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\bullet-2.82-r2704\build\vs2012\HACD.vcxproj">
+      <Project>{e57c0284-1114-0a49-b477-da23b9043b3b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\bullet-2.82-r2704\build\vs2012\LinearMath.vcxproj">
+      <Project>{152f8bcd-4bb5-4449-b7bb-1bbcfba7340d}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

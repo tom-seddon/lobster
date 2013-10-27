@@ -21,7 +21,7 @@ template <typename T> class IntResourceManager2
         Elem() : t(NULL), nextfree(size_t(-1)) {}
     };
 
-    vector<Elem> elems;
+    std::vector<Elem> elems;
     size_t firstfree;
     size_t numitems;
 
@@ -484,7 +484,7 @@ static Value DoBV_(Value &body_,Value &f0_,void (b2Body::*mfn)(float))
 static const int NUM_VELOCITY_ITERATIONS=8;
 static const int NUM_POSITION_ITERATIONS=8;
 
-void AddPhysics()
+void AddBox2DPhysics()
 {
     __nop();
 
@@ -902,4 +902,6 @@ void AddPhysics()
     ENDDECL0(b2_debuginfo, "", "" ,"S", "return some box2D debug info.");
 }
 
-AutoRegister __ap("physics",AddPhysics);
+AutoRegister __ab2p("box2dphysics",AddBox2DPhysics);
+
+// minitags::::func.regexp=^[ \t]+STARTDECL\(([A-Za-z0-9_]+)\)
