@@ -3,7 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-f -u -u -v "c:\\tom\\tests\\lobster\\3dtest.lobster"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-f -u -u -v "c:\tom\tests\lobster\whosearmy\whosearmy.lobster"</LocalDebuggerCommandArguments>
     <LocalDebuggerMergeEnvironment>false</LocalDebuggerMergeEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

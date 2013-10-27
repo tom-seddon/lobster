@@ -175,6 +175,9 @@
     <ClCompile Include="..\src\box2d_physics.cpp">
       <Filter>engine\lobster_bindings</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\bullet_physics.cpp">
+      <Filter>engine\lobster_bindings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\TODO.txt" />

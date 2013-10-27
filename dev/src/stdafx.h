@@ -6,7 +6,8 @@
     #include <stdlib.h>
     #include <crtdbg.h>
     #ifdef _DEBUG
-        #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+        // don't know why plain old #undef new doesn't do the trick...
+        #define DEBUG_NEW new
         #define new DEBUG_NEW
     #endif
 #endif
