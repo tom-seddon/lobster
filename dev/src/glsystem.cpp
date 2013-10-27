@@ -21,6 +21,9 @@ vector<Light> lights;
 float4 curcolor = float4_0;
 
 static BlendMode curblendmode = BLEND_NONE;
+static CullMode curcullmode = CULL_NONE;
+static bool curdepthtest = true;
+static bool curdepthwrite = true;
 
 int SetBlendMode(BlendMode mode)
 {
@@ -35,6 +38,61 @@ int SetBlendMode(BlendMode mode)
     }
     int old = curblendmode;
     curblendmode = mode;
+    return old;
+}
+
+int SetCullMode(CullMode mode)
+{
+    if (mode == curcullmode)
+        return curcullmode;
+
+    switch (mode)
+    {
+    case CULL_NONE:
+        glDisable(GL_CULL_FACE);
+        break;
+
+    case CULL_FRONT:
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+        break;
+
+    case CULL_BACK:
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        break;
+    }
+
+    int old = curcullmode;
+    curcullmode = mode;
+    return old;
+}
+
+bool SetDepthTest(bool test)
+{
+    bool old = curdepthtest;
+
+    curdepthtest = test;
+
+    if (curdepthtest)
+        glDepthFunc(GL_LESS);
+    else
+        glDepthFunc(GL_ALWAYS);
+
+    return old;
+}
+
+bool SetDepthWrite(bool write)
+{
+    bool old = curdepthwrite;
+
+    curdepthwrite = write;
+
+    if (curdepthwrite)
+        glDepthMask(TRUE);
+    else
+        glDepthMask(FALSE);
+
     return old;
 }
 
@@ -79,6 +137,17 @@ void OpenGLFrameStart(const int2 &screensize)
     // force initial set.
     curblendmode = BLEND_NONE;
     SetBlendMode(BLEND_ALPHA);
+
+    curcullmode = CULL_NONE;
+    SetCullMode(CULL_BACK);
+
+    curdepthwrite = false;
+    SetDepthWrite(true);
+
+    curdepthtest = false;
+    SetDepthTest(true);
+
+    //
 
     curcolor = float4(1);
 

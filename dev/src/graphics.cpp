@@ -9,6 +9,7 @@
 int2 screensize = int2_0;
 
 Primitive polymode = PRIM_FAN;
+CullMode cullmode = CULL_BACK;
 
 IntResourceManagerCompact<Mesh> *meshes = NULL;
 
@@ -92,6 +93,23 @@ int GetSampler(Value &i)
     if (i.ival < 0 || i.ival >= Shader::MAX_SAMPLERS)
         g_vm->BuiltinError("graphics: illegal texture unit");
     return i.ival;
+}
+
+static Value GetMatrixValue(const float4x4 &m)
+{
+    LVector *mv = g_vm->NewVector(4, V_VECTOR);
+
+    for (int c = 0; c < 4; ++c)
+    {
+        LVector *cv = g_vm->NewVector(4, V_VECTOR);
+
+        for (int r = 0; r < 4; ++r)
+            cv->push(Value(m[c][r]));
+
+        mv->push(Value(cv));
+    }
+
+    return Value(mv);
 }
 
 void AddGraphics()
@@ -565,7 +583,7 @@ void AddGraphics()
 
         return Value((int)meshes->Add(m));
     }
-    ENDDECL5(gl_newmesh, "indices,positions,colors,texcoords,normals", "VVVVV", "I", "creates a new vertex buffer and returns an integer id (1..) for it. you may specify [] to get defaults for colors (white) / texcoords (position x & y) / normals (generated from adjacent triangles)");
+    ENDDECL5(gl_newmesh, "indices,positions,colors,texcoords,normals", "VVVVV", "I", "creates a new vertex buffer and returns an integer id (1..) for it. (positions, texcoords and normals are vectors of float3; colours are vector of float4.) you may specify [] to get defaults for colors (white) / texcoords (position x & y) / normals (generated from adjacent triangles)");
 
     STARTDECL(gl_newmesh_iqm) (Value &fn)
     {
@@ -615,7 +633,7 @@ void AddGraphics()
 
         return i;
     }
-    ENDDECL1(gl_rendermesh, "i", "I", "", "renders the specified vertex buffer");
+    ENDDECL1(gl_rendermesh, "i", "I", "", "renders the specified vertex buffer as a triangle list");
 
     STARTDECL(gl_setshader) (Value &shader)
     {
@@ -646,6 +664,60 @@ void AddGraphics()
         return ret;
     }
     ENDDECL2CONTEXIT(gl_blend, "on,body", "Ic", "A", "changes the blending mode to 0: off, 1: alpha blend (default), 2: additive, 3: alpha additive, 4: multiplicative. when a body is given, restores the previous mode afterwards");
+
+    STARTDECL(gl_cull)(Value &on, Value &body)
+    {
+        TestGL();
+
+        int old = SetCullMode(on.ival ? CULL_FRONT : CULL_NONE);
+        if (body.type != V_NIL)
+            g_vm->Push(Value(old));
+        return body;
+    }
+    MIDDECL(gl_cull)(Value &ret)
+    {
+        auto m = g_vm->Pop();
+        assert(m.type == V_INT);
+        SetCullMode((CullMode)m.ival);
+        return ret;
+    }
+    ENDDECL2CONTEXIT(gl_cull, "on", "I", "", "set culling on/off. when a body is given, restores previous mode.");
+
+    STARTDECL(gl_depthtest)(Value &on, Value &body)
+    {
+        TestGL();
+
+        bool old = SetDepthTest(!!on.ival);
+        if (body.type != V_NIL)
+            g_vm->Push(Value(old));
+        return body;
+    }
+    MIDDECL(gl_depthtest)(Value &ret)
+    {
+        auto m = g_vm->Pop();
+        assert(m.type == V_INT);
+        SetDepthTest(!!m.ival);
+        return ret;
+    }
+    ENDDECL2CONTEXIT(gl_depthtest, "on", "I", "", "set depth test on/off. when a body is given, restores previous mode.");
+
+    STARTDECL(gl_depthwrite)(Value &on, Value &body)
+    {
+        TestGL();
+
+        bool old = SetDepthWrite(!!on.ival);
+        if (body.type != V_NIL)
+            g_vm->Push(Value(old));
+        return body;
+    }
+    MIDDECL(gl_depthwrite)(Value &ret)
+    {
+        auto m = g_vm->Pop();
+        assert(m.type == V_INT);
+        SetDepthWrite(!!m.ival);
+        return ret;
+    }
+    ENDDECL2CONTEXIT(gl_depthwrite, "on", "I", "", "set depth write on/off. when a body is given, restores previous mode.");
 
     STARTDECL(gl_loadtexture) (Value &name)
     {
@@ -765,6 +837,24 @@ void AddGraphics()
         return Value();
     }
     ENDDECL3(gl_debug_grid, "num,dist,thickness", "VVF", "", "renders a grid in space for debugging purposes. num is the amount of lines in all 3 directions, and dist their spacing. thickness of the lines in the same units");
+
+    STARTDECL(gl_object2view)()
+    {
+        return GetMatrixValue(object2view);
+    }
+    ENDDECL0(gl_object2view, "", "", "V", "gets current object->view matrix as a vector of 4 column vectors")
+
+    STARTDECL(gl_view2object)()
+    {
+        return GetMatrixValue(view2object);
+    }
+    ENDDECL0(gl_view2object, "", "", "V", "gets current view->object matrix as a vector of 4 column vectors")
+
+    STARTDECL(gl_view2clip)()
+    {
+        return GetMatrixValue(view2clip);
+    }
+    ENDDECL0(gl_view2clip, "", "", "V", "gets current view->clip matrix as a vector of 4 column vectors")
 }
 
 AutoRegister __ag("graphics", AddGraphics);
