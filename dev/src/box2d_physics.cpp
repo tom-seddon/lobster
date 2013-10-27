@@ -413,10 +413,10 @@ static float GetIFor1kgShape(const b2Shape *shape)
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-static IntResourceManager2<b2Shape> *g_shapes;
-static IntResourceManager2<b2Body> *g_bodies;
-static b2World *g_world;
-static DebugDraw *g_debug_draw;
+static IntResourceManager2<b2Shape> *g_b2_shapes;
+static IntResourceManager2<b2Body> *g_b2_bodies;
+static b2World *g_b2_world;
+static DebugDraw *g_b2_debug_draw;
 
 template<class T>
 static void ScalarDeleter(T *p, void *context)
@@ -446,7 +446,7 @@ static Value AllocateID(std::vector<ContType> *cont,ObjType *obj)
 // body->vector
 static Value DoB_V(Value &body_,const b2Vec2 &(b2Body::*get_mfn)() const)
 {
-    b2Body *body=g_bodies->Get(body_.ival);
+    b2Body *body=g_b2_bodies->Get(body_.ival);
 
     const b2Vec2 &v=(body->*get_mfn)();
     return GetValue(v);
@@ -455,7 +455,7 @@ static Value DoB_V(Value &body_,const b2Vec2 &(b2Body::*get_mfn)() const)
 // body->float
 static Value DoB_F(Value &body_,float (b2Body::*get_mfn)() const)
 {
-    b2Body *body=g_bodies->Get(body_.ival);
+    b2Body *body=g_b2_bodies->Get(body_.ival);
 
     float f=(body->*get_mfn)();
     return Value(f);
@@ -464,7 +464,7 @@ static Value DoB_F(Value &body_,float (b2Body::*get_mfn)() const)
 // body,vector->void
 static Value DoBV_(Value &body_,Value &v0_,void (b2Body::*mfn)(const b2Vec2 &))
 {
-    b2Body *body=g_bodies->Get(body_.ival);
+    b2Body *body=g_b2_bodies->Get(body_.ival);
     const b2Vec2 &v0=Getb2Vec2DEC(v0_);
 
     (body->*mfn)(v0);
@@ -473,7 +473,7 @@ static Value DoBV_(Value &body_,Value &v0_,void (b2Body::*mfn)(const b2Vec2 &))
 // body,float->void
 static Value DoBV_(Value &body_,Value &f0_,void (b2Body::*mfn)(float))
 {
-    b2Body *body=g_bodies->Get(body_.ival);
+    b2Body *body=g_b2_bodies->Get(body_.ival);
 
     (body->*mfn)(f0_.fval);
 }
@@ -490,13 +490,13 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_createworld)(Value &g)
     {
-        if(g_world)
-            g_vm->BuiltinError("can only have one world at a time.");
+        if(g_b2_world)
+            g_vm->BuiltinError("can only have one Box2D world at a time.");
 
-        g_world=new b2World(Getb2Vec2DEC(g));
+        g_b2_world=new b2World(Getb2Vec2DEC(g));
 
-        g_bodies=new IntResourceManager2<b2Body>(&BodyDeleter, g_world);
-        g_shapes=new IntResourceManager2<b2Shape>(&ScalarDeleter, 0);
+        g_b2_bodies=new IntResourceManager2<b2Body>(&BodyDeleter, g_b2_world);
+        g_b2_shapes=new IntResourceManager2<b2Shape>(&ScalarDeleter, 0);
 
         return Value();
     }
@@ -504,26 +504,26 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_frame)(Value &timestep_)
     {
-        g_world->Step(timestep_.fval,NUM_VELOCITY_ITERATIONS,NUM_POSITION_ITERATIONS);
+        g_b2_world->Step(timestep_.fval,NUM_VELOCITY_ITERATIONS,NUM_POSITION_ITERATIONS);
         return Value();
     }
     ENDDECL1(b2_frame,"timestep","F","","advances world by TIMESTEP seconds.");
 
     STARTDECL(b2_destroyworld)()
     {
-        delete g_bodies;
-        g_bodies=nullptr;
+        delete g_b2_bodies;
+        g_b2_bodies=nullptr;
 
-        delete g_shapes;
-        g_shapes=nullptr;
+        delete g_b2_shapes;
+        g_b2_shapes=nullptr;
 
-        g_world->SetDebugDraw(nullptr);
+        g_b2_world->SetDebugDraw(nullptr);
 
-        delete g_debug_draw;
-        g_debug_draw=nullptr;
+        delete g_b2_debug_draw;
+        g_b2_debug_draw=nullptr;
 
-        delete g_world;
-        g_world=nullptr;
+        delete g_b2_world;
+        g_b2_world=nullptr;
 
         return Value();
     }
@@ -531,14 +531,14 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_debugdraw)(Value &flags_)
     {
-        if(!g_debug_draw)
+        if(!g_b2_debug_draw)
         {
-            g_debug_draw=new DebugDraw(LookupShader("vertexcolor"));
+            g_b2_debug_draw=new DebugDraw(LookupShader("vertexcolor"));
 
-            g_world->SetDebugDraw(g_debug_draw);
+            g_b2_world->SetDebugDraw(g_b2_debug_draw);
         }
 
-        g_debug_draw->Reset();
+        g_b2_debug_draw->Reset();
 
         uint32 flags=0;
 
@@ -558,11 +558,11 @@ void AddBox2DPhysics()
                 flags|=b2Draw::e_centerOfMassBit;
         }
 
-        g_debug_draw->SetFlags(flags);
+        g_b2_debug_draw->SetFlags(flags);
 
-        g_world->DrawDebugData();
+        g_b2_world->DrawDebugData();
 
-        g_debug_draw->Draw();
+        g_b2_debug_draw->Draw();
 
         flags_.DEC();
 
@@ -578,7 +578,7 @@ void AddBox2DPhysics()
 
         shape->m_radius=r;
 
-        return Value((int)g_shapes->Add(shape));
+        return Value((int)g_b2_shapes->Add(shape));
     }
     ENDDECL1(b2_createcircleshape,"r","A","I","create circle shape with given radius. returns integer id.");
 
@@ -599,7 +599,7 @@ void AddBox2DPhysics()
 
         pts_.DEC();
 
-        int id=(int)g_shapes->Add(shape);
+        int id=(int)g_b2_shapes->Add(shape);
         return Value(id);
     }
     ENDDECL1(b2_createpolygonshape,"pts","V","I","create polygon shape with given points. returns integer id.");
@@ -611,7 +611,7 @@ void AddBox2DPhysics()
         b2PolygonShape *shape=new b2PolygonShape;
         shape->SetAsBox(size.x*.5f,size.y*.5f);
 
-        int id=(int)g_shapes->Add(shape);
+        int id=(int)g_b2_shapes->Add(shape);
         return Value(id);
     }
     ENDDECL1(b2_createboxshape,"size","V","I","create axis-aligned box shape with given size. returns integer id.");
@@ -631,11 +631,11 @@ void AddBox2DPhysics()
         body_def.position=Getb2Vec2DEC(pos_);
         body_def.angle=GetFloatDEC(angle_);
 
-        b2Body *body=g_world->CreateBody(&body_def);
+        b2Body *body=g_b2_world->CreateBody(&body_def);
 
         b2FixtureDef fixture_def;
 
-        fixture_def.shape=g_shapes->Get((size_t)shape_.ival);
+        fixture_def.shape=g_b2_shapes->Get((size_t)shape_.ival);
 
         body->CreateFixture(&fixture_def);
 
@@ -647,7 +647,7 @@ void AddBox2DPhysics()
 
         body->SetMassData(&mass_data);
 
-        int id=(int)g_bodies->Add(body);
+        int id=(int)g_b2_bodies->Add(body);
         return Value(id);
 
     }
@@ -655,7 +655,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_destroybody)(Value &body_)
     {
-        g_bodies->Delete(body_.ival);
+        g_b2_bodies->Delete(body_.ival);
 
         return Value();
     }
@@ -663,7 +663,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_getIfor1kgshape)(Value &shape_)
     {
-        b2Shape *shape=g_shapes->Get((size_t)shape_.ival);
+        b2Shape *shape=g_b2_shapes->Get((size_t)shape_.ival);
 
         float I=GetIFor1kgShape(shape);
         return Value(I);
@@ -675,7 +675,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_getposition)(Value &body_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         b2Vec2 result=body->GetPosition();
         return GetValue(result);
     }
@@ -683,7 +683,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_getworldcenter)(Value &body_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         b2Vec2 result=body->GetWorldCenter();
         return GetValue(result);
     }
@@ -691,7 +691,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_getlocalcenter)(Value &body_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         b2Vec2 result=body->GetLocalCenter();
         return GetValue(result);
     }
@@ -699,7 +699,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_getangle)(Value &body_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         
         float angle=body->GetAngle();
 
@@ -709,7 +709,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_settransform)(Value &body_,Value &pos_,Value &angle_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         const b2Vec2 &pos=Getb2Vec2DEC(pos_);
         float angle=angle_.fval;
 
@@ -731,7 +731,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_getangularvelocity)(Value &body_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
 
         float result=body->GetAngularVelocity();
 
@@ -741,7 +741,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_setangularvelocity)(Value &body_,Value &angularvelocity_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         body->SetAngularVelocity(angularvelocity_.fval);
         return Value();
     }
@@ -752,7 +752,7 @@ void AddBox2DPhysics()
 
        STARTDECL(b2_getlinearvelocity)(Value &body_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         b2Vec2 result=body->GetLinearVelocity();
         return GetValue(result);
     }
@@ -760,7 +760,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_setlinearvelocity)(Value &body_,Value &linearvelocity_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         const b2Vec2 &linearvelocity=Getb2Vec2DEC(linearvelocity_);
         body->SetLinearVelocity(linearvelocity);
         return Value();
@@ -772,7 +772,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_wake)(Value &body_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         body->SetAwake(true);
         return Value();
     }
@@ -780,7 +780,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_applyforce)(Value &body_,Value &worldforce_,Value &worldpt_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         const b2Vec2 &worldforce=Getb2Vec2DEC(worldforce_);
         const b2Vec2 &worldpt=Getb2Vec2DEC(worldpt_);
         body->ApplyForce(worldforce,worldpt,false);
@@ -790,7 +790,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_applyforcetocenter)(Value &body_,Value &worldforce_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         const b2Vec2 &worldforce=Getb2Vec2DEC(worldforce_);
         body->ApplyForceToCenter(worldforce,false);
         return Value();
@@ -799,7 +799,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_applytorque)(Value &body_,Value &torque_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         body->ApplyTorque(torque_.fval,false);
         return Value();
     }
@@ -810,7 +810,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_getlinearvelocityfromworldpoint)(Value &body_,Value &worldpt_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         const b2Vec2 &worldpt=Getb2Vec2DEC(worldpt_);
         const b2Vec2 &linearvelocity=body->GetLinearVelocityFromWorldPoint(worldpt);
         return GetValue(linearvelocity);
@@ -819,7 +819,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_getlinearvelocityfromlocalpoint)(Value &body_,Value &localpt_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
         const b2Vec2 &localpt=Getb2Vec2DEC(localpt_);
         const b2Vec2 &linearvelocity=body->GetLinearVelocityFromLocalPoint(localpt);
         return GetValue(linearvelocity);
@@ -831,7 +831,7 @@ void AddBox2DPhysics()
 
     STARTDECL(b2_getaabb)(Value &body_)
     {
-        b2Body *body=g_bodies->Get(body_.ival);
+        b2Body *body=g_b2_bodies->Get(body_.ival);
 
         b2AABB total_aabb;
         total_aabb.lowerBound.Set(FLT_MAX,FLT_MAX);
@@ -894,8 +894,8 @@ void AddBox2DPhysics()
     {
         LVector *lv=g_vm->NewVector(2,V_VECTOR);
 
-        lv->push(Value((int)g_bodies->NumItems()));
-        lv->push(Value((int)g_shapes->NumItems()));
+        lv->push(Value((int)g_b2_bodies->NumItems()));
+        lv->push(Value((int)g_b2_shapes->NumItems()));
 
         return Value(lv);
     }
