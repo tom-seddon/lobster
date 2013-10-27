@@ -681,7 +681,7 @@ void AddGraphics()
         SetCullMode((CullMode)m.ival);
         return ret;
     }
-    ENDDECL2CONTEXIT(gl_cull, "on", "I", "", "set culling on/off. when a body is given, restores previous mode.");
+    ENDDECL2CONTEXIT(gl_cull, "on,body", "Ic", "", "set culling on/off. when a body is given, restores previous mode.");
 
     STARTDECL(gl_depthtest)(Value &on, Value &body)
     {
@@ -699,7 +699,7 @@ void AddGraphics()
         SetDepthTest(!!m.ival);
         return ret;
     }
-    ENDDECL2CONTEXIT(gl_depthtest, "on", "I", "", "set depth test on/off. when a body is given, restores previous mode.");
+    ENDDECL2CONTEXIT(gl_depthtest, "on,body", "Ic", "", "set depth test on/off. when a body is given, restores previous mode.");
 
     STARTDECL(gl_depthwrite)(Value &on, Value &body)
     {
@@ -717,7 +717,7 @@ void AddGraphics()
         SetDepthWrite(!!m.ival);
         return ret;
     }
-    ENDDECL2CONTEXIT(gl_depthwrite, "on", "I", "", "set depth write on/off. when a body is given, restores previous mode.");
+    ENDDECL2CONTEXIT(gl_depthwrite, "on,body", "Ic", "", "set depth write on/off. when a body is given, restores previous mode.");
 
     STARTDECL(gl_loadtexture) (Value &name)
     {
