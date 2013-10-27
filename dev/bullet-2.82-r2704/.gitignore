@@ -1,6 +1,7 @@
 \#.*\#
 
 *.sdf
+*.opensdf
 *.suo
 *.vcxproj.user
 *.ilk
