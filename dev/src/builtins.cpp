@@ -468,6 +468,7 @@ void AddBuiltins()
 
     STARTDECL(sin) (Value &a) { return Value(sinf(a.fval * RAD)); } ENDDECL1(sin, "angle", "F", "F", "the y coordinate of the normalized vector indicated by angle (in degrees)");    
     STARTDECL(cos) (Value &a) { return Value(cosf(a.fval * RAD)); } ENDDECL1(cos, "angle", "F", "F", "the x coordinate of the normalized vector indicated by angle (in degrees)");
+    STARTDECL(tan) (Value &a) { return Value(tanf(a.fval * RAD)); } ENDDECL1(tan, "angle", "F", "F", "tan. angle is in degrees");
     STARTDECL(sincos) (Value &a) { return ToValue(float3(cosf(a.fval * RAD), sinf(a.fval * RAD), 0.0f)); } ENDDECL1(sincos, "angle", "F", "V", "the normalized vector indicated by angle (in degrees), same as [ cos(angle), sin(angle), 0 ]");
 
     STARTDECL(arcsin) (Value &y) { return Value(asinf(y.fval) / RAD); } ENDDECL1(arcsin, "y", "F", "F", "the angle (in degrees) indicated by the y coordinate projected to the unit circle");    
@@ -483,6 +484,12 @@ void AddBuiltins()
     STARTDECL(rnd)     (Value &a)    { VECTOROPI(rnd, rnd(max(1, f.ival))); } ENDDECL1(rnd,     "max",  "A", "A", "a random value [0..max) or a random vector from an input vector. Uses the Mersenne Twister algorithm.");
     STARTDECL(rndseed) (Value &seed) { rnd.ReSeed(seed.ival); return Value(); } ENDDECL1(rndseed, "seed", "I", "", "explicitly set a random seed for reproducable randomness");
     STARTDECL(rndfloat)()            { return Value((float)rnd.rnddouble());  } ENDDECL0(rndfloat, "", "", "F", "a random float [0..1)");
+
+    STARTDECL(vscale)(Value &a, Value &s)
+    {
+        VECTOROPF(vscale, f.fval * s.fval);
+    }
+    ENDDECL2(vscale, "v,s", "VF", "V", "return V scaled by S");
 
     STARTDECL(rnditem)(Value &xs)
     {
