@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Demos">
+      <UniqueIdentifier>{4F1A3C95-BDDB-6F4E-957C-F9D5183E83D1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Demos\BasicDemo">
+      <UniqueIdentifier>{8251F5C1-9436-5C47-A8D0-22855F15DE18}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Demos\BasicDemo\BasicDemo.h">
+      <Filter>Demos\BasicDemo</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Demos\BasicDemo\BasicDemo.cpp">
+      <Filter>Demos\BasicDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Demos\BasicDemo\main.cpp">
+      <Filter>Demos\BasicDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Demos\BasicDemo\Win32BasicDemo.cpp">
+      <Filter>Demos\BasicDemo</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\bullet.rc" />
+  </ItemGroup>
+</Project>

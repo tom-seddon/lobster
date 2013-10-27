@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Demos">
+      <UniqueIdentifier>{80B682B4-CC9F-CF44-9AFE-D2F4A96C6BA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Demos\RollingFrictionDemo">
+      <UniqueIdentifier>{5AED09E0-5D2A-9F44-A70B-77BEACE92D60}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Demos\RollingFrictionDemo\RollingFrictionDemo.h">
+      <Filter>Demos\RollingFrictionDemo</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Demos\RollingFrictionDemo\main.cpp">
+      <Filter>Demos\RollingFrictionDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Demos\RollingFrictionDemo\RollingFrictionDemo.cpp">
+      <Filter>Demos\RollingFrictionDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Demos\RollingFrictionDemo\Win32RollingFrictionDemo.cpp">
+      <Filter>Demos\RollingFrictionDemo</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\bullet.rc" />
+  </ItemGroup>
+</Project>

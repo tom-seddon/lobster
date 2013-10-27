@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Demos">
+      <UniqueIdentifier>{B90E3327-DF67-844C-82DA-C827B377858C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Demos\ContinuousConvexCollision">
+      <UniqueIdentifier>{D08BC7E5-5039-3C4B-AE03-B05CADEA2C7F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Demos\ContinuousConvexCollision\ContinuousConvexCollision.h">
+      <Filter>Demos\ContinuousConvexCollision</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Demos\ContinuousConvexCollision\ContinuousConvexCollisionDemo.cpp">
+      <Filter>Demos\ContinuousConvexCollision</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\bullet.rc" />
+  </ItemGroup>
+</Project>
