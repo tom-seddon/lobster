@@ -24,3 +24,6 @@ dev/lobster/*.vcxproj.user
 
 dev/box2d/box2d/build/vs2010/bin/
 dev/box2d/box2d/build/vs2010/obj/
+
+lobster/builtin_functions_reference.html
+lobster/lobsterDBG.exe
