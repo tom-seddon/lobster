@@ -99,6 +99,11 @@ struct VM : VMBase
             delete vmpool;
             vmpool = NULL;
         }
+
+#ifdef VM_PROFILER
+        delete[] lineprofilecounts;
+        delete[] byteprofilecounts;
+#endif
     }
 
     void SetMaxStack(int ms) { maxstacksize = ms; }

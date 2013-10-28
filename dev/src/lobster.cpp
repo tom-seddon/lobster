@@ -264,6 +264,7 @@ int main(int argc, char* argv[])
 {
     #ifdef WIN32
         _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+        //_crtBreakAlloc = 13047;
     #endif
         
     DebugLog(-1, "Lobster running...");
