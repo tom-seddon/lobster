@@ -475,7 +475,7 @@ void AddBuiltins()
     STARTDECL(arccos) (Value &x) { return Value(acosf(x.fval) / RAD); } ENDDECL1(arccos, "x", "F", "F", "the angle (in degrees) indicated by the x coordinate projected to the unit circle");
 
     STARTDECL(atan2)     (Value &vec) { auto v = ValueDecTo<float3>(vec); return Value(atan2f(v.y(), v.x()) / RAD); } ENDDECL1(atan2, "vec",  "V" , "F", "the angle (in degrees) corresponding to a normalized 2D vector");
-    STARTDECL(normalize) (Value &vec) { auto v = ValueDecTo<float3>(vec); return ToValue(v == float3_0 ? v : normalize(v)); } ENDDECL1(normalize, "vec",  "V" , "V", "returns a vector of unit length");
+    STARTDECL(normalize) (Value &vec) { auto v = ValueDecTo<float4>(vec); return ToValue(v == float4_0 ? v : normalize(v)); } ENDDECL1(normalize, "vec",  "V" , "V", "returns a vector of unit length");
 
     STARTDECL(dot)       (Value &a, Value &b) { return Value(dot(ValueDecTo<float4>(a), ValueDecTo<float4>(b))); } ENDDECL2(dot,   "a,b", "VV", "F", "the length of vector a when projected onto b (or vice versa)");
     STARTDECL(magnitude) (Value &a)           { return Value(length(ValueDecTo<float4>(a))); } ENDDECL1(magnitude, "a", "V", "F", "the geometric length of a vector");
@@ -490,6 +490,115 @@ void AddBuiltins()
         VECTOROPF(vscale, f.fval * s.fval);
     }
     ENDDECL2(vscale, "v,s", "VF", "V", "return V scaled by S");
+
+    STARTDECL(quataxisangle)(Value &axis_, Value &angle_)
+    {
+        const float3 &axis = normalize(ValueDecTo<float3>(axis_));
+        float h = angle_.fval * .5f;
+
+        float s = sinf(RAD * h);
+        float c = cosf(RAD * h);
+
+        LVector *q = g_vm->NewVector(4, V_VECTOR);
+
+        q->push(Value(s * axis.x()));
+        q->push(Value(s * axis.y()));
+        q->push(Value(s * axis.z()));
+        q->push(Value(c));
+
+        return Value(q);
+    }
+    ENDDECL2(quataxisangle, "axis,angle", "VF", "V", "return quaternion representing rotation of ANGLE degrees about AXIS");
+
+    STARTDECL(quatxaxis)(Value &q_)
+    {
+        const float4 &q = ValueDecTo<float4>(q_);
+
+        float qx = q.x();
+        float qy = q.y();
+        float qz = q.z();
+        float qw = q.w();
+
+        LVector *axis = g_vm->NewVector(3, V_VECTOR);
+
+        axis->push(Value(1.f - 2.f * qy * qy - 2.f * qz * qz));
+        axis->push(Value(0.f + 2.f * qx * qy + 2.f * qw * qz));
+        axis->push(Value(0.f + 2.f * qx * qz - 2.f * qw * qy));
+
+        return Value(axis);
+    }
+    ENDDECL1(quatxaxis, "q", "V", "V", "return X axis of basis represented by Q");
+
+    STARTDECL(quatyaxis)(Value &q_)
+    {
+        const float4 &q = ValueDecTo<float4>(q_);
+    
+        float qx = q.x();
+        float qy = q.y();
+        float qz = q.z();
+        float qw = q.w();
+
+        LVector *axis = g_vm->NewVector(3, V_VECTOR);
+
+        axis->push(Value(0.f + 2.f * qx * qy - 2.f * qw * qz));
+        axis->push(Value(1.f - 2.f * qx * qx - 2.f * qz * qz));
+        axis->push(Value(0.f + 2.f * qy * qz + 2.f * qw * qx));
+
+        return Value(axis);
+    }
+    ENDDECL1(quatyaxis, "q", "V", "V", "return Y axis of basis represented by Q");
+
+    STARTDECL(quatzaxis)(Value &q_)
+    {
+        const float4 &q = ValueDecTo<float4>(q_);
+    
+        float qx = q.x();
+        float qy = q.y();
+        float qz = q.z();
+        float qw = q.w();
+
+        LVector *axis = g_vm->NewVector(3, V_VECTOR);
+    
+        axis->push(Value(0.f + 2.f * qx * qz + 2.f * qw * qy));
+        axis->push(Value(0.f + 2.f * qy * qz - 2.f * qw * qx));
+        axis->push(Value(1.f - 2.f * qx * qx - 2.f * qy * qy));
+
+        return Value(axis);
+    }
+    ENDDECL1(quatzaxis, "q", "V", "V", "return Z axis of basis represented by Q");
+
+    STARTDECL(quattransform)(Value &a_, Value &b_)
+    {
+        const float4 &a = ValueDecTo<float4>(a_);
+    
+        float ax = a.x();
+        float ay = a.y();
+        float az = a.z();
+        float aw = a.w();
+
+	    const float4 &b = ValueDecTo<float4>(b_);
+    
+        float bx = b.x();
+        float by = b.y();
+        float bz = b.z();
+        float bw = b.w();
+
+        float dot = ax * bx + ay * by + az * bz;
+
+        float e0 = ay * bz - az * by + aw * bx + bw * ax;
+        float e1 = az * bx - ax * bz + aw * by + bw * ay;
+        float e2 = ax * by - ay * bx + aw * bz + bw * az;
+
+        LVector *r = g_vm->NewVector(4, V_VECTOR);
+
+        r->push(Value(e0));
+        r->push(Value(e1));
+        r->push(Value(e2));
+        r->push(Value(aw * bw - dot));
+
+        return Value(r);
+    }
+    ENDDECL2(quattransform, "a,b", "VV", "V", "return quaternion A*B, B transformed by A")
 
     STARTDECL(rnditem)(Value &xs)
     {
@@ -757,3 +866,4 @@ void AddBuiltins()
 
 AutoRegister __abi("builtins", AddBuiltins);
 
+// minitags::::func.regexp=^[ \t]+STARTDECL\(([A-Za-z0-9_]+)\)
