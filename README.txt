@@ -1,9 +1,13 @@
-This is my fork of lobster. New stuff:
+This is my fork of lobster.
+
+New stuff:
 
 - An emacs major mode - see lobster/docs/emacs. Required a few minor
   changes to lobster to make it work nicely.
 
 - Basic Box2D integration.
+
+- Basic Bullet integration.
 
 - Better handling of Win32 exceptions. (Not generally a problem in
   lobster, but my additions did suffer from them while still under
