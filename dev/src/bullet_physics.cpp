@@ -361,8 +361,8 @@ void AddBulletPhysics()
                 flags|=btIDebugDraw::DBG_DrawAabb;
             else if(c=='p')
                 flags|=btIDebugDraw::DBG_DrawContactPoints;
-//             else if(c=='')
-//                 flags|=DBG_NoDeactivation;
+            //             else if(c=='')
+            //                 flags|=DBG_NoDeactivation;
             else if(c=='c')
                 flags|=btIDebugDraw::DBG_DrawConstraints;
             else if(c=='l')
@@ -422,15 +422,22 @@ void AddBulletPhysics()
         const btQuaternion &orient=GetBtQuaternionFromValueDEC(orient_);
         btCollisionShape *shape=g_bt->shapes.Get(shape_.ival);
 
-        btRigidBody::btRigidBodyConstructionInfo ci(mass_.fval,nullptr,shape);
+        btVector3 inertia;
+        shape->calculateLocalInertia(mass_.fval,inertia);
+
+        btRigidBody::btRigidBodyConstructionInfo ci(mass_.fval,nullptr,shape,inertia);
 
         ci.m_startWorldTransform.setOrigin(pos);
         ci.m_startWorldTransform.setRotation(orient);
 
         auto body=new btRigidBody(ci);
-        size_t id=g_bt->bodies.Add(body);
+
+        //body->setCollisionFlags();
 
         g_bt->world.addRigidBody(body);
+
+
+        size_t id=g_bt->bodies.Add(body);
 
         return Value((int)id);
     }
