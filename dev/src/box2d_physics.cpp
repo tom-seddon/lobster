@@ -317,7 +317,7 @@ static b2Vec2 Getb2Vec2(const Value &v)
 {
     if(v.type==V_VECTOR)
     {
-        if(v.vval->len==2)
+        if(v.vval->len>=2)
         {
             b2Vec2 result;
 
