@@ -713,10 +713,11 @@ void AddBox2DPhysics()
         b2Body *body=g_b2_bodies->Get(body_.ival);
         
         float angle=body->GetAngle();
+		angle/=RAD;
 
         return Value(angle);
     }
-    ENDDECL1(b2_getangle,"body","I","F","get body angle, in radians.");
+    ENDDECL1(b2_getangle,"body","I","F","get body angle, in degrees.");
 
     STARTDECL(b2_settransform)(Value &body_,Value &pos_,Value &angle_)
     {
