@@ -691,6 +691,15 @@ void AddBox2DPhysics()
     }
     ENDDECL1(b2_getworldcenter,"body","I","V","get body world center.");
 
+	STARTDECL(b2_getworldpoint)(Value &body_,Value &localpoint_)
+	{
+		b2Body *body=g_b2_bodies->Get(body_.ival);
+		const b2Vec2 &localpoint=Getb2Vec2DEC(localpoint_);
+		b2Vec2 result=body->GetWorldPoint(localpoint);
+		return GetValue(result);
+	}
+	ENDDECL2(b2_getworldpoint,"body,localpoint","IV","V","get world point given local point.");
+
     STARTDECL(b2_getlocalcenter)(Value &body_)
     {
         b2Body *body=g_b2_bodies->Get(body_.ival);
@@ -789,6 +798,16 @@ void AddBox2DPhysics()
         return Value();
     }
     ENDDECL3(b2_applyforce,"body,worldforce,worldpt","IVV","","apply force to body.");
+
+    STARTDECL(b2_applyimpulse)(Value &body_,Value &worldimpulse_,Value &worldpt_)
+    {
+        b2Body *body=g_b2_bodies->Get(body_.ival);
+        const b2Vec2 &worldimpulse=Getb2Vec2DEC(worldimpulse_);
+        const b2Vec2 &worldpt=Getb2Vec2DEC(worldpt_);
+        body->ApplyLinearImpulse(worldimpulse,worldpt,false);
+        return Value();
+    }
+    ENDDECL3(b2_applyimpulse,"body,worldimpulse,worldpt","IVV","","apply impulse to body.");
 
     STARTDECL(b2_applyforcetocenter)(Value &body_,Value &worldforce_)
     {
