@@ -417,6 +417,7 @@ static IntResourceManager2<b2Shape> *g_b2_shapes;
 static IntResourceManager2<b2Body> *g_b2_bodies;
 static b2World *g_b2_world;
 static DebugDraw *g_b2_debug_draw;
+static float g_b2_timestep;
 
 template<class T>
 static void ScalarDeleter(T *p, void *context)
@@ -488,26 +489,27 @@ void AddBox2DPhysics()
 {
     __nop();
 
-    STARTDECL(b2_createworld)(Value &g)
+    STARTDECL(b2_createworld)(Value &g,Value &timestep)
     {
         if(g_b2_world)
             g_vm->BuiltinError("can only have one Box2D world at a time.");
 
         g_b2_world=new b2World(Getb2Vec2DEC(g));
+		g_b2_timestep=timestep.fval;
 
         g_b2_bodies=new IntResourceManager2<b2Body>(&BodyDeleter, g_b2_world);
         g_b2_shapes=new IntResourceManager2<b2Shape>(&ScalarDeleter, 0);
 
         return Value();
     }
-    ENDDECL1(b2_createworld,"g","V","","create world with given gravity.");
+    ENDDECL2(b2_createworld,"g,timestep","VF","","create world with given gravity that wil update with the given time step.");
 
-    STARTDECL(b2_frame)(Value &timestep_)
+    STARTDECL(b2_frame)()
     {
-        g_b2_world->Step(timestep_.fval,NUM_VELOCITY_ITERATIONS,NUM_POSITION_ITERATIONS);
-        return Value();
+        g_b2_world->Step(g_b2_timestep,NUM_VELOCITY_ITERATIONS,NUM_POSITION_ITERATIONS);
+        return Value(true);
     }
-    ENDDECL1(b2_frame,"timestep","F","","advances world by TIMESTEP seconds.");
+    ENDDECL0(b2_frame,"","","I","advances world by the timestep and returns true.");
 
     STARTDECL(b2_destroyworld)()
     {
