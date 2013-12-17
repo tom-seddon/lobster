@@ -252,6 +252,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\src\vmdata.cpp" />
+    <ClCompile Include="..\src\xinput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\lobster\shaders\default.materials" />
