@@ -24,6 +24,7 @@ static BlendMode curblendmode = BLEND_NONE;
 static CullMode curcullmode = CULL_NONE;
 static bool curdepthtest = true;
 static bool curdepthwrite = true;
+static bool curwireframe = false;
 
 int SetBlendMode(BlendMode mode)
 {
@@ -96,6 +97,17 @@ bool SetDepthWrite(bool write)
     return old;
 }
 
+bool SetWireframeMode(bool wireframe)
+{
+    bool old = curwireframe;
+
+    curwireframe = wireframe;
+
+    glPolygonMode(GL_FRONT_AND_BACK, curwireframe ? GL_LINE : GL_FILL);
+
+    return old;
+}
+
 void ClearFrameBuffer(const float3 &c)
 {
     glClearColor(c.x(), c.y(), c.z(), 1.0);
@@ -146,6 +158,9 @@ void OpenGLFrameStart(const int2 &screensize)
 
     curdepthtest = false;
     SetDepthTest(true);
+
+    curwireframe = true;
+    SetWireframeMode(false);
 
     //
 

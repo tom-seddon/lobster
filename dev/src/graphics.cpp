@@ -719,6 +719,24 @@ void AddGraphics()
     }
     ENDDECL2CONTEXIT(gl_depthwrite, "on,body", "Ic", "", "set depth write on/off. when a body is given, restores previous mode.");
 
+    STARTDECL(gl_wireframe)(Value &on, Value &body)
+    {
+        TestGL();
+
+        bool old = SetWireframeMode(!!on.ival);
+        if (body.type != V_NIL)
+            g_vm->Push(Value(old));
+        return body;
+    }
+    MIDDECL(gl_wireframe)(Value &ret)
+    {
+        auto m = g_vm->Pop();
+        assert(m.type == V_INT);
+        SetWireframeMode(!!m.ival);
+        return ret;
+    }
+    ENDDECL2CONTEXIT(gl_wireframe, "on,body", "Ic", "", "set wireframe rendering on/off. when a body is given, restores previous mode.");
+
     STARTDECL(gl_loadtexture) (Value &name)
     {
         TestGL();

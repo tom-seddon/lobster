@@ -97,6 +97,7 @@ extern int SetBlendMode(BlendMode mode);
 extern int SetCullMode(CullMode mode);
 extern bool SetDepthTest(bool test);
 extern bool SetDepthWrite(bool write);
+extern bool SetWireframeMode(bool wireframe);
 
 extern string LoadMaterialFile(const char *mfile);
 extern Shader *LookupShader(const char *name);
