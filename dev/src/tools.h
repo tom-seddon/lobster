@@ -464,7 +464,7 @@ template <typename T> class IntResourceManager
         return i;
     }
 
-    T *Get(size_t i)
+    T *Get(size_t i) const
     {
         return i < elems.size() ? elems[i].t : NULL;
     }
