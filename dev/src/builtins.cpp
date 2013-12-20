@@ -744,7 +744,7 @@ void AddBuiltins()
             default: break;
         }
         err:
-        a.DECRT();
+        a.DEC();
         return g_vm->BuiltinError("abs() needs a numerical value or numerical vector");
     }
     ENDDECL1(abs, "x", "A", "A", "absolute value of int/float/vector");
