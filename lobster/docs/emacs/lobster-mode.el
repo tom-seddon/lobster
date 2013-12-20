@@ -284,7 +284,7 @@ result is, like, \(STATUS . START)."
 
   ;; font lock muck.
   (setq font-lock-defaults
-	`((,(rx line-start "---8<--- " (minimal-match (1+ anything)) " ---8<---" line-end)
+	`((,(rx line-start "---8<--- " (1+ anything) line-end)
 	   (1 font-lock-string-face))
 	  t				;keywords-only
 	  nil				;case-fold
@@ -385,8 +385,7 @@ result is, like, \(STATUS . START)."
 	(insert "---8<--- "
 		(format-time-string "%Y-%m-%d %R")
 		" "
-		(combine-and-quote-strings program-args)
-		" ---8<---")
+		(combine-and-quote-strings program-args))
 	(newline)
 	(compilation-forget-errors)
 	(goto-char (point-max)))
