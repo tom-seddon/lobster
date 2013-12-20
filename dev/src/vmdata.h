@@ -564,3 +564,31 @@ template <typename T> inline Value ToValue(const T &vec)
     for (auto a : vec) v->push(Value(a));
     return Value(v);
 }
+
+inline Value GetMatrixValue(const float4x4 &m)
+{
+    LVector *mv = g_vm->NewVector(4, V_VECTOR);
+
+    for (int c = 0; c < 4; ++c)
+        mv->push(ToValue(m[c]));
+
+    return Value(mv);
+}
+
+inline void GetMatrixFromValue(float4x4 *m, const Value &v)
+{
+    if (v.type != V_VECTOR)
+        g_vm->BuiltinError("cannot convert object of type " + std::string(g_vm->ProperTypeName(v)) + " to matrix");
+
+    if (v.vval->len != 4)
+        g_vm->BuiltinError("cannot convert vector of length " + std::string(inttoa(v.vval->len)) + " to matrix");
+
+    for (int c = 0; c < 4; ++c)
+        m->set(c, ValueTo<float4>(v.vval->at(c)));
+}
+
+inline void GetMatrixFromValueDEC(float4x4 *m, Value &v)
+{
+    GetMatrixFromValue(m, v);
+    v.DEC();
+}

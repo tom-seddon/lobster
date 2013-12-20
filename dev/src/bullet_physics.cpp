@@ -166,6 +166,15 @@ static BulletData *g_bt;
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
+static void TestBullet()
+{
+    if(!g_bt)
+        g_vm->BuiltinError("Bullet must be initialised");
+}
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
 static float GetFloat(const Value &v)
 {
     if(v.type==V_INT)
@@ -270,6 +279,18 @@ static Value GetValueFromBtVector3(const btVector3 &v)
     return Value(lv);
 }
 
+static Value GetValueFromBtQuaternion(const btQuaternion &v)
+{
+    LVector *lv=g_vm->NewVector(4,V_VECTOR);
+
+    lv->push(Value(v.getX()));
+    lv->push(Value(v.getY()));
+    lv->push(Value(v.getZ()));
+    lv->push(Value(v.getW()));
+
+    return Value(lv);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
@@ -278,6 +299,42 @@ static void Delete(T **p)
 {
     delete *p;
     *p=nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+template<class ObjectType,class MFnObjectType>
+static Value DoFloatAction(Value &id_,Value &value_,const IntResourceManager<ObjectType> &resman,void (MFnObjectType::*set_mfn)(float))
+{
+    ObjectType *object=resman.Get(id_.ival);
+    (object->*set_mfn)(value_.fval);
+    return Value();
+}
+
+template<class ObjectType,class MFnResultType,class MFnObjectType>
+static Value DoQuaternionFunc(Value &id_,const IntResourceManager<ObjectType> &resman,MFnResultType (MFnObjectType::*get_mfn)() const)
+{
+    ObjectType *object=resman.Get(id_.ival);
+    const btQuaternion &value=(object->*get_mfn)();
+    return GetValueFromBtQuaternion(value);
+}
+
+template<class ObjectType,class MFnResultType,class MFnObjectType>
+static Value DoVec3Func(Value &id_,const IntResourceManager<ObjectType> &resman,MFnResultType (MFnObjectType::*get_mfn)() const)
+{
+    ObjectType *object=resman.Get(id_.ival);
+    const btVector3 &value=(object->*get_mfn)();
+    return GetValueFromBtVector3(value);
+}
+
+template<class ObjectType,class MFnObjectType,class MFnArgType>
+static Value DoVec3Action(Value &id_,Value &value_,const IntResourceManager<ObjectType> &resman,void (MFnObjectType::*set_mfn)(MFnArgType))
+{
+    ObjectType *object=resman.Get(id_.ival);
+    const btVector3 &value=GetBtVector3FromValueDEC(value_);
+    (object->*set_mfn)(value);
+    return Value();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -316,6 +373,8 @@ void AddBulletPhysics()
 
     STARTDECL(bt_setgravity)(Value &g_)
     {
+        TestBullet();
+
         const btVector3 &g=GetBtVector3FromValueDEC(g_);
         g_bt->world.setGravity(g);
 
@@ -330,6 +389,8 @@ void AddBulletPhysics()
 
     STARTDECL(bt_frame)(Value &timestep_)
     {
+        TestBullet();
+
         g_bt->world.stepSimulation(timestep_.fval,1);
 
         return Value();
@@ -343,6 +404,8 @@ void AddBulletPhysics()
 
     STARTDECL(bt_debugdraw)(Value &flags_)
     {
+        TestBullet();
+
         if(!g_bt->debug_draw)
         {
             g_bt->debug_draw=new BulletDebugDraw(LookupShader("vertexcolor"));
@@ -379,6 +442,8 @@ void AddBulletPhysics()
 
         g_bt->debug_draw->DoDraw();
 
+        flags_.DEC();
+
         return Value();
     }
     ENDDECL1(bt_debugdraw,"flags","S","",
@@ -388,8 +453,22 @@ void AddBulletPhysics()
     // shape create/destroy
     //////////////////////////////////////////////////////////////////////////
 
+    STARTDECL(bt_createsphereshape)(Value &radius_)
+    {
+        TestBullet();
+
+        auto shape=new btSphereShape(radius_.fval);
+        size_t id=g_bt->shapes.Add(shape);
+
+        return Value((int)id);
+    }
+    ENDDECL1(bt_createsphereshape,"size","F","I",
+        "create sphere shape with given radius. returns integer id");
+
     STARTDECL(bt_createboxshape)(Value &size_)
     {
+        TestBullet();
+
         const btVector3 &size=GetBtVector3FromValueDEC(size_);
 
         auto shape=new btBoxShape(size*.5f);
@@ -402,6 +481,8 @@ void AddBulletPhysics()
 
     STARTDECL(bt_createstaticplaneshape)(Value &n_,Value &d_)
     {
+        TestBullet();
+
         const btVector3 &n=GetBtVector3FromValueDEC(n_);
 
         auto shape=new btStaticPlaneShape(n,d_.fval);
@@ -412,12 +493,35 @@ void AddBulletPhysics()
     ENDDECL2(bt_createstaticplaneshape,"n,d","VF","I",
         "create static plane shape with normal N and plane constant D. returns integer id");
 
+    STARTDECL(bt_createconvexhullshape)(Value &pts_)
+    {
+        TestBullet();
+
+        auto shape=new btConvexHullShape();
+
+        for(int i=0;i<pts_.vval->len;++i)
+        {
+            const btVector3 &pt=GetBtVector3FromValue(pts_.vval->at(i));
+            shape->addPoint(pt);
+        }
+
+        size_t id=g_bt->shapes.Add(shape);
+
+        pts_.DEC();
+
+        return Value((int)id);
+    }
+    ENDDECL1(bt_createconvexhullshape,"pts","V","I",
+        "create convex hull shape with points from PTS, an array of float3");
+
     //////////////////////////////////////////////////////////////////////////
     // body create/destroy
     //////////////////////////////////////////////////////////////////////////
 
     STARTDECL(bt_createbody)(Value &pos_,Value &orient_,Value &shape_,Value &mass_)
     {
+        TestBullet();
+
         const btVector3 &pos=GetBtVector3FromValueDEC(pos_);
         const btQuaternion &orient=GetBtQuaternionFromValueDEC(orient_);
         btCollisionShape *shape=g_bt->shapes.Get(shape_.ival);
@@ -436,7 +540,6 @@ void AddBulletPhysics()
 
         g_bt->world.addRigidBody(body);
 
-
         size_t id=g_bt->bodies.Add(body);
 
         return Value((int)id);
@@ -444,14 +547,112 @@ void AddBulletPhysics()
     ENDDECL4(bt_createbody,"pos,orient,shape,mass","VVIF","I",
         "create rigid body. initial position is POS, orientation ORIENT (a quat), shape id SHAPE and mass MASS. returns integer id");
 
+    STARTDECL(bt_makebodykinematic)(Value &body_)
+    {
+        TestBullet();
+
+        btRigidBody *body=g_bt->bodies.Get(body_.ival);
+
+        int cf=body->getCollisionFlags();
+
+        if(cf&btRigidBody::CF_STATIC_OBJECT)
+        {
+            cf&=~btRigidBody::CF_STATIC_OBJECT;
+            cf|=btRigidBody::CF_KINEMATIC_OBJECT;
+
+            body->setCollisionFlags(cf);
+
+            body->setActivationState(DISABLE_DEACTIVATION);
+        }
+
+        return Value();
+    }
+    ENDDECL1(bt_makebodykinematic,"body","I","",
+        "make body BODY kinematic");
+
     STARTDECL(bt_destroybody)(Value &body_)
     {
+        TestBullet();
+
+        btRigidBody *body=g_bt->bodies.Get(body_.ival);
+
+        g_bt->world.removeRigidBody(body);
+
         g_bt->bodies.Delete(body_.ival);
 
         return Value();
     }
     ENDDECL1(bt_destroybody,"id","I","",
         "destroy rigid body with id ID");
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    STARTDECL(bt_applytorqueimpulse)(Value &body_,Value &impulse_)
+    {
+        return DoVec3Action(body_,impulse_,g_bt->bodies,&btRigidBody::applyTorqueImpulse);
+    }
+    ENDDECL2(bt_applytorqueimpulse,"body,impulse","IV","",
+        "apply torque impulse to body");
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    STARTDECL(bt_getbodyorientation)(Value &body_)
+    {
+        return DoQuaternionFunc(body_,g_bt->bodies,&btRigidBody::getOrientation);
+    }
+    ENDDECL1(bt_getbodyorientation,"id","I","V",
+        "get orientation of body ID as a quaternion");
+
+    STARTDECL(bt_setbodyorientation)(Value &body_,Value &orient_)
+    {
+        TestBullet();
+
+        btRigidBody *body=g_bt->bodies.Get(body_.ival);
+        const btQuaternion &orient=GetBtQuaternionFromValueDEC(orient_);
+
+        btTransform *t=&body->getWorldTransform();
+        t->setRotation(orient);
+
+        return Value();
+    }
+    ENDDECL2(bt_setbodyorientation,"id,orient","IV","",
+        "set orientation of body ID as a quaternion");
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    STARTDECL(bt_getbodyvel)(Value &body_)
+    {
+        return DoVec3Func(body_,g_bt->bodies,&btRigidBody::getLinearVelocity);
+    }
+    ENDDECL1(bt_getbodyvel,"id","I","V",
+        "get linear velocity of body ID");
+
+    STARTDECL(bt_setbodyvel)(Value &body_,Value &vel_)
+    {
+        return DoVec3Action(body_,vel_,g_bt->bodies,&btRigidBody::setLinearVelocity);
+    }
+    ENDDECL2(bt_setbodyvel,"id,vel","IV","",
+        "set linear velocity of body ID");
+
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
+    STARTDECL(bt_setbodygravity)(Value &body_,Value &gravity_)
+    {
+        return DoVec3Action(body_,gravity_,g_bt->bodies,&btRigidBody::setGravity);
+    }
+    ENDDECL2(bt_setbodygravity,"id,g","IV","",
+        "set gravity for body ID to G");
+
+    STARTDECL(bt_setbodyrestitution)(Value &body_,Value &restitution_)
+    {
+        return DoFloatAction(body_,restitution_,g_bt->bodies,&btRigidBody::setRestitution);
+    }
+    ENDDECL2(bt_setbodyrestitution,"id,restitution","IF","",
+        "set coefficient of restitution for body ID to RESTITUTION");
 }
 
 AutoRegister __abp("bulletphysics",AddBulletPhysics);

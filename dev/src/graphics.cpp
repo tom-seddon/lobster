@@ -95,23 +95,6 @@ int GetSampler(Value &i)
     return i.ival;
 }
 
-static Value GetMatrixValue(const float4x4 &m)
-{
-    LVector *mv = g_vm->NewVector(4, V_VECTOR);
-
-    for (int c = 0; c < 4; ++c)
-    {
-        LVector *cv = g_vm->NewVector(4, V_VECTOR);
-
-        for (int r = 0; r < 4; ++r)
-            cv->push(Value(m[c][r]));
-
-        mv->push(Value(cv));
-    }
-
-    return Value(mv);
-}
-
 void AddGraphics()
 {
     STARTDECL(gl_window) (Value &title, Value &xs, Value &ys)
@@ -873,6 +856,18 @@ void AddGraphics()
         return GetMatrixValue(view2clip);
     }
     ENDDECL0(gl_view2clip, "", "", "V", "gets current view->clip matrix as a vector of 4 column vectors")
+
+    STARTDECL(gl_transformpoint)(Value &v)
+    {
+        const float3 &object = ValueDecTo<float3>(v);
+
+        const float4 &view = object2view * float4(object, 1.f);
+
+        return ToValue(view.xyz());
+    }
+    ENDDECL1(gl_transformpoint, "point", "V", "V", "returns POINT transformed by current modelview matrix")
 }
 
 AutoRegister __ag("graphics", AddGraphics);
+
+// minitags::::func.regexp=^[ \t]+STARTDECL\(([A-Za-z0-9_]+)\)

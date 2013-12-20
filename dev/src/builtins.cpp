@@ -27,6 +27,16 @@ int KeyCompare(const Value &a, const Value &b, bool rec = false)
     }
 }
 
+static float4 make_quat(const float3 &axis, float theta)
+{
+    float h = theta * .5f;
+
+    float s = sinf(h);
+    float c = cosf(h);
+
+    return float4(s * axis, c);
+}
+
 void AddBuiltins()
 {
     STARTDECL(add) (Value &x, Value &y)
@@ -494,21 +504,40 @@ void AddBuiltins()
     STARTDECL(quataxisangle)(Value &axis_, Value &angle_)
     {
         const float3 &axis = normalize(ValueDecTo<float3>(axis_));
-        float h = angle_.fval * .5f;
 
-        float s = sinf(RAD * h);
-        float c = cosf(RAD * h);
-
-        LVector *q = g_vm->NewVector(4, V_VECTOR);
-
-        q->push(Value(s * axis.x()));
-        q->push(Value(s * axis.y()));
-        q->push(Value(s * axis.z()));
-        q->push(Value(c));
-
-        return Value(q);
+        const float4 &quat = make_quat(axis, RAD * angle_.fval);
+        return ToValue(quat);
     }
     ENDDECL2(quataxisangle, "axis,angle", "VF", "V", "return quaternion representing rotation of ANGLE degrees about AXIS");
+
+    STARTDECL(quatlookat)(Value &pos_, Value &target_)
+    {
+        const float3 &pos = ValueDecTo<float3>(pos_);
+        const float3 &target = ValueDecTo<float3>(target_);
+
+        const float3 &d = target - pos;
+        const float3 &dn = normalize(d);
+
+        static const float3 UP(0.f, 0.f, 1.f);
+
+        float3 c;
+
+        if (dot(dn, UP) < .999f)
+            c = cross(dn, UP);
+        else
+        {
+            // pick some other random axis then.
+            c = cross(dn, float3(1.f, 0.f, 0.f));
+        }
+
+        float sine = length(c);
+        float theta = asinf(sine);
+        c /= sine;
+
+        const float4 &quat = make_quat(c, theta);
+        return ToValue(quat);
+    }
+    ENDDECL2(quatlookat, "pos,target", "VV", "V", "return quaternion representing orientation of object at POS pointing towards TARGET");
 
     STARTDECL(quatxaxis)(Value &q_)
     {
